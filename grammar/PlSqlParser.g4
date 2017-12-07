@@ -22,6 +22,23 @@ parser grammar PlSqlParser;
 
 options { tokenVocab=PlSqlLexer; }
 
+javln
+    : javln_head (javln_body (SEMICOLON | SOLIDUS)?)+ EOF
+    ;
+
+javln_head
+    : SET DEFINE OFF
+    ;
+
+javln_body
+    : create_function_body
+    | create_procedure_body
+    | create_package
+    | create_package_body
+    | create_trigger
+    | create_view
+    ;
+
 sql_script
     : ((unit_statement | sql_plus_command) SEMICOLON?)* EOF
     ;
@@ -2829,6 +2846,7 @@ regular_id
     | CHARACTER
     //| CHECK
     | CHR
+    | CLASS
     | CLOB
     | CLOSE
     | CLUSTER

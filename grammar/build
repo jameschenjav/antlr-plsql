@@ -1,3 +1,5 @@
 #!/bin/sh
 antlr4 PlSqlLexer.g4
 antlr4 PlSqlParser.g4
+mv -f *.java ../src
+javac ../src/*.java

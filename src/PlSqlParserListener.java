@@ -7,6 +7,36 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface PlSqlParserListener extends ParseTreeListener {
 	/**
+	 * Enter a parse tree produced by {@link PlSqlParser#javln}.
+	 * @param ctx the parse tree
+	 */
+	void enterJavln(PlSqlParser.JavlnContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link PlSqlParser#javln}.
+	 * @param ctx the parse tree
+	 */
+	void exitJavln(PlSqlParser.JavlnContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link PlSqlParser#javln_head}.
+	 * @param ctx the parse tree
+	 */
+	void enterJavln_head(PlSqlParser.Javln_headContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link PlSqlParser#javln_head}.
+	 * @param ctx the parse tree
+	 */
+	void exitJavln_head(PlSqlParser.Javln_headContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link PlSqlParser#javln_body}.
+	 * @param ctx the parse tree
+	 */
+	void enterJavln_body(PlSqlParser.Javln_bodyContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link PlSqlParser#javln_body}.
+	 * @param ctx the parse tree
+	 */
+	void exitJavln_body(PlSqlParser.Javln_bodyContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link PlSqlParser#sql_script}.
 	 * @param ctx the parse tree
 	 */
