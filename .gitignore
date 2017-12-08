@@ -29,5 +29,6 @@ grammar/*.java
 
 .antlr
 .idea/workspace.xml
+.idea/misc.xml
 
 !bin/.keep
