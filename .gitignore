@@ -22,8 +22,10 @@
 hs_err_pid*
 
 *.tokens
-javln/
-.antlr
-grammar/*.java
+bin/
 out/
+javln/
+grammar/*.java
+
+.antlr
 .idea/workspace.xml
