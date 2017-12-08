@@ -7,7 +7,7 @@ import java.io.File
 class PlSql: PlSqlParserBaseListener() {
 	override fun exitJavln_body(ctx: PlSqlParser.Javln_bodyContext?) {
 		for (c in ctx!!.children) {
-			println(c)
+			println(c.toStringTree())
 		}
 	}
 
