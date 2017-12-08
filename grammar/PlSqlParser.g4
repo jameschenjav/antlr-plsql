@@ -97,17 +97,17 @@ unit_statement
 // Function DDLs
 
 drop_function
-    : DROP FUNCTION function_name ';'
+    : DROP FUNCTION regular_name ';'
     ;
 
 alter_function
-    : ALTER FUNCTION function_name COMPILE DEBUG? compiler_parameters_clause* (REUSE SETTINGS)? ';'
+    : ALTER FUNCTION regular_name COMPILE DEBUG? compiler_parameters_clause* (REUSE SETTINGS)? ';'
     ;
 
 create_function_body
-    : CREATE (OR REPLACE)? FUNCTION function_name ('(' (','? parameter)+ ')')?
+    : CREATE (OR REPLACE)? FUNCTION regular_name ('(' (','? parameter)+ ')')?
       RETURN type_spec (invoker_rights_clause | parallel_enable_clause | result_cache_clause | DETERMINISTIC)*
-      ((PIPELINED? (IS | AS) (DECLARE? seq_of_declare_specs? body | call_spec)) | (PIPELINED | AGGREGATE) USING implementation_type_name) ';'
+      ((PIPELINED? (IS | AS) (DECLARE? seq_of_declare_specs? body | call_spec)) | (PIPELINED | AGGREGATE) USING regular_name) ';'
     ;
 
 // Creation Function - Specific Clauses
@@ -135,19 +135,19 @@ streaming_clause
 // Package DDLs
 
 drop_package
-    : DROP PACKAGE BODY? (schema_object_name '.')? package_name ';'
+    : DROP PACKAGE BODY? (schema_object_name '.')? common_name ';'
     ;
 
 alter_package
-    : ALTER PACKAGE package_name COMPILE DEBUG? (PACKAGE | BODY | SPECIFICATION)? compiler_parameters_clause* (REUSE SETTINGS)? ';'
+    : ALTER PACKAGE common_name COMPILE DEBUG? (PACKAGE | BODY | SPECIFICATION)? compiler_parameters_clause* (REUSE SETTINGS)? ';'
     ;
 
 create_package
-    : CREATE (OR REPLACE)? PACKAGE (schema_object_name '.')? package_name invoker_rights_clause? (IS | AS) package_obj_spec* END package_name? ';'
+    : CREATE (OR REPLACE)? PACKAGE (schema_object_name '.')? common_name invoker_rights_clause? (IS | AS) package_obj_spec* END common_name? ';'
     ;
 
 create_package_body
-    : CREATE (OR REPLACE)? PACKAGE BODY (schema_object_name '.')? package_name (IS | AS) package_obj_body* (BEGIN seq_of_statements)? END package_name? ';'
+    : CREATE (OR REPLACE)? PACKAGE BODY (schema_object_name '.')? common_name (IS | AS) package_obj_body* (BEGIN seq_of_statements)? END common_name? ';'
     ;
 
 // Create Package Specific Clauses
@@ -164,11 +164,11 @@ package_obj_spec
     ;
 
 procedure_spec
-    : PROCEDURE identifier ('(' parameter ( ',' parameter )* ')')? ';'
+    : PROCEDURE common_name parameters ';'
     ;
 
 function_spec
-    : FUNCTION identifier ('(' parameter ( ',' parameter)* ')')?
+    : FUNCTION common_name parameters
       RETURN type_spec (DETERMINISTIC)? (RESULT_CACHE)? ';'
     ;
 
@@ -187,49 +187,53 @@ package_obj_body
 // Procedure DDLs
 
 drop_procedure
-    : DROP PROCEDURE procedure_name ';'
+    : DROP PROCEDURE regular_name ';'
     ;
 
 alter_procedure
-    : ALTER PROCEDURE procedure_name COMPILE DEBUG? compiler_parameters_clause* (REUSE SETTINGS)? ';'
+    : ALTER PROCEDURE regular_name COMPILE DEBUG? compiler_parameters_clause* (REUSE SETTINGS)? ';'
     ;
 
 function_body
-    : FUNCTION identifier ('(' parameter (',' parameter)* ')')?
+    : FUNCTION common_name parameters
       RETURN type_spec (invoker_rights_clause | parallel_enable_clause | result_cache_clause | DETERMINISTIC)*
-      ((PIPELINED? (IS | AS) (DECLARE? seq_of_declare_specs? body | call_spec)) | (PIPELINED | AGGREGATE) USING implementation_type_name) ';'
+      ((PIPELINED? (IS | AS) (DECLARE? seq_of_declare_specs? body | call_spec)) | (PIPELINED | AGGREGATE) USING regular_name) ';'
     ;
 
 procedure_body
-    : PROCEDURE identifier ('(' parameter (',' parameter)* ')')? (IS | AS)
+    : PROCEDURE common_name parameters (IS | AS)
       (DECLARE? seq_of_declare_specs? body | call_spec | EXTERNAL) ';'
     ;
 
 create_procedure_body
-    : CREATE (OR REPLACE)? PROCEDURE procedure_name ('(' parameter (',' parameter)* ')')?
+    : CREATE (OR REPLACE)? PROCEDURE regular_name parameters
       invoker_rights_clause? (IS | AS)
       (DECLARE? seq_of_declare_specs? body | call_spec | EXTERNAL) ';'
     ;
 
+parameters
+	: ('(' parameter (',' parameter)* ')')?
+	;
+
 // Trigger DDLs
 
 drop_trigger
-    : DROP TRIGGER trigger_name ';'
+    : DROP TRIGGER regular_name ';'
     ;
 
 alter_trigger
-    : ALTER TRIGGER alter_trigger_name=trigger_name
-      ((ENABLE | DISABLE) | RENAME TO rename_trigger_name=trigger_name | COMPILE DEBUG? compiler_parameters_clause* (REUSE SETTINGS)?) ';'
+    : ALTER TRIGGER alter_trigger_name=regular_name
+      ((ENABLE | DISABLE) | RENAME TO rename_trigger_name=regular_name | COMPILE DEBUG? compiler_parameters_clause* (REUSE SETTINGS)?) ';'
     ;
 
 create_trigger
-    : CREATE ( OR REPLACE )? TRIGGER trigger_name
+    : CREATE ( OR REPLACE )? TRIGGER regular_name
       (simple_dml_trigger | compound_dml_trigger | non_dml_trigger)
       trigger_follows_clause? (ENABLE | DISABLE)? trigger_when_clause? trigger_body ';'
     ;
 
 trigger_follows_clause
-    : FOLLOWS trigger_name (',' trigger_name)*
+    : FOLLOWS regular_name (',' regular_name)*
     ;
 
 trigger_when_clause
@@ -251,7 +255,7 @@ compound_dml_trigger
     ;
 
 non_dml_trigger
-    : (BEFORE | AFTER) non_dml_event (OR non_dml_event)* ON (DATABASE | (schema_name '.')? SCHEMA)
+    : (BEFORE | AFTER) non_dml_event (OR non_dml_event)* ON (DATABASE | (common_name '.')? SCHEMA)
     ;
 
 trigger_body
@@ -265,7 +269,7 @@ routine_clause
     ;
 
 compound_trigger_block
-    : COMPOUND TRIGGER seq_of_declare_specs? timing_point_section+ END trigger_name
+    : COMPOUND TRIGGER seq_of_declare_specs? timing_point_section+ END regular_name
     ;
 
 timing_point_section
@@ -362,7 +366,7 @@ alter_attribute_definition
     ;
 
 attribute_definition
-    : attribute_name type_spec?
+    : common_name type_spec?
     ;
 
 alter_collection_clauses
@@ -427,12 +431,12 @@ subprog_decl_in_type
     ;
 
 proc_decl_in_type
-    : PROCEDURE procedure_name '(' type_elements_parameter (',' type_elements_parameter)* ')'
+    : PROCEDURE regular_name '(' type_elements_parameter (',' type_elements_parameter)* ')'
       (IS | AS) (call_spec | DECLARE? seq_of_declare_specs? body ';')
     ;
 
 func_decl_in_type
-    : FUNCTION function_name ('(' type_elements_parameter (',' type_elements_parameter)* ')')?
+    : FUNCTION regular_name ('(' type_elements_parameter (',' type_elements_parameter)* ')')?
       RETURN type_spec (IS | AS) (call_spec | DECLARE? seq_of_declare_specs? body ';')
     ;
 
@@ -472,11 +476,11 @@ subprogram_spec
     ;
 
 type_procedure_spec
-    : PROCEDURE procedure_name '(' type_elements_parameter (',' type_elements_parameter)* ')' ((IS | AS) call_spec)?
+    : PROCEDURE regular_name '(' type_elements_parameter (',' type_elements_parameter)* ')' ((IS | AS) call_spec)?
     ;
 
 type_function_spec
-    : FUNCTION function_name ('(' type_elements_parameter (',' type_elements_parameter)* ')')?
+    : FUNCTION regular_name ('(' type_elements_parameter (',' type_elements_parameter)* ')')?
       RETURN (type_spec | SELF AS RESULT) ((IS | AS) call_spec | EXTERNAL VARIABLE? NAME expression)?
     ;
 
@@ -500,7 +504,7 @@ pragma_elements
     ;
 
 type_elements_parameter
-    : parameter_name type_spec
+    : common_name type_spec
     ;
 
 // Sequence DDLs
@@ -538,11 +542,11 @@ sequence_start_clause
     ;
 
 create_index
-    : CREATE UNIQUE? INDEX index_name ON tableview_name paren_column_list (TABLESPACE id_expression)? (COMPUTE STATISTICS)? ';'
+    : CREATE UNIQUE? INDEX regular_name ON tableview_name paren_column_list (TABLESPACE id_expression)? (COMPUTE STATISTICS)? ';'
     ;
 
 alter_index
-    : ALTER INDEX old_index_name=index_name RENAME TO new_index_name=index_name ';'
+    : ALTER INDEX old_index_name=regular_name RENAME TO new_index_name=regular_name ';'
     ;
 
 create_user
@@ -655,11 +659,11 @@ add_rem_container_data
 
 container_data_clause
     : set_container_data
-    | add_rem_container_data (FOR container_tableview_name)?
+    | add_rem_container_data (FOR regular_name)?
     ;
 
 drop_index
-    : DROP INDEX index_name ';'
+    : DROP INDEX regular_name ';'
     ;
 
 grant_statement
@@ -1055,8 +1059,8 @@ comment_on_column
 
 create_synonym
     // Synonym's schema cannot be specified for public synonyms
-    : CREATE (OR REPLACE)? PUBLIC SYNONYM synonym_name FOR (schema_name PERIOD)? schema_object_name (AT_SIGN link_name)?
-    | CREATE (OR REPLACE)? SYNONYM (schema_name PERIOD)? synonym_name FOR (schema_name PERIOD)? schema_object_name (AT_SIGN link_name)?
+    : CREATE (OR REPLACE)? PUBLIC SYNONYM common_name FOR (common_name PERIOD)? schema_object_name (AT_SIGN common_name)?
+    | CREATE (OR REPLACE)? SYNONYM (common_name PERIOD)? common_name FOR (common_name PERIOD)? schema_object_name (AT_SIGN common_name)?
     ;
 
 comment_on_table
@@ -1158,8 +1162,12 @@ c_parameters_clause
     ;
 
 parameter
-    : parameter_name (IN | OUT | INOUT | NOCOPY)* type_spec? default_value_part?
+    : common_name parameter_desc type_spec? default_value_part?
     ;
+
+parameter_desc
+	: (IN | OUT | INOUT | NOCOPY)*
+	;
 
 default_value_part
     : (ASSIGN_OP | DEFAULT) expression
@@ -1200,7 +1208,7 @@ cursor_declaration
     ;
 
 parameter_spec
-    : parameter_name (IN? type_spec)? default_value_part?
+    : common_name (IN? type_spec)? default_value_part?
     ;
 
 exception_declaration
@@ -1317,18 +1325,18 @@ loop_statement
 // Loop Specific Clause
 
 cursor_loop_param
-    : index_name IN REVERSE? lower_bound range_separator='..' upper_bound
+    : regular_name IN REVERSE? lower_bound range_separator='..' upper_bound
     | record_name IN (cursor_name ('(' expressions? ')')? | '(' select_statement ')')
     ;
 
 forall_statement
-    : FORALL index_name IN bounds_clause sql_statement (SAVE EXCEPTIONS)?
+    : FORALL regular_name IN bounds_clause sql_statement (SAVE EXCEPTIONS)?
     ;
 
 bounds_clause
     : lower_bound '..' upper_bound
-    | INDICES OF collection_name between_bound?
-    | VALUES OF index_name
+    | INDICES OF regular_name between_bound?
+    | VALUES OF regular_name
     ;
 
 between_bound
@@ -1448,7 +1456,7 @@ transaction_control_statements
 
 set_transaction_command
     : SET TRANSACTION
-      (READ (ONLY | WRITE) | ISOLATION LEVEL (SERIALIZABLE | READ COMMITTED) | USE ROLLBACK SEGMENT rollback_segment_name)?
+      (READ (ONLY | WRITE) | ISOLATION LEVEL (SERIALIZABLE | READ COMMITTED) | USE ROLLBACK SEGMENT common_name)?
       (NAME quoted_string)?
     ;
 
@@ -1467,11 +1475,11 @@ write_clause
     ;
 
 rollback_statement
-    : ROLLBACK WORK? (TO SAVEPOINT? savepoint_name | FORCE quoted_string)?
+    : ROLLBACK WORK? (TO SAVEPOINT? common_name | FORCE quoted_string)?
     ;
 
 savepoint_statement
-    : SAVEPOINT savepoint_name
+    : SAVEPOINT common_name
     ;
 
 // Dml
@@ -1511,7 +1519,7 @@ subquery_factoring_clause
     ;
 
 factoring_element
-    : query_name paren_column_list? AS '(' subquery order_by_clause? ')'
+    : common_name paren_column_list? AS '(' subquery order_by_clause? ')'
       search_clause? cycle_clause?
     ;
 
@@ -1695,11 +1703,11 @@ return_rows_clause
     ;
 
 reference_model
-    : REFERENCE reference_model_name ON '(' subquery ')' model_column_clauses cell_reference_options*
+    : REFERENCE common_name ON '(' subquery ')' model_column_clauses cell_reference_options*
     ;
 
 main_model
-    : (MAIN main_model_name)? model_column_clauses cell_reference_options* model_rules_clause
+    : (MAIN common_name)? model_column_clauses cell_reference_options* model_rules_clause
     ;
 
 model_column_clauses
@@ -2219,7 +2227,7 @@ within_or_over_part
     ;
 
 cost_matrix_clause
-    : COST (MODEL AUTO? | '(' (','? cost_class_name)+ ')' VALUES '(' expressions? ')')
+    : COST (MODEL AUTO? | '(' (','? common_name)+ ')' VALUES '(' expressions? ')')
     ;
 
 xml_passing_clause
@@ -2325,64 +2333,20 @@ xml_column_name
     | quoted_string
     ;
 
-cost_class_name
-    : identifier
-    ;
-
-attribute_name
-    : identifier
-    ;
-
-savepoint_name
-    : identifier
-    ;
-
-rollback_segment_name
-    : identifier
-    ;
-
-table_var_name
-    : identifier
-    ;
-
-schema_name
-    : identifier
-    ;
-
 routine_name
-    : identifier ('.' id_expression)* ('@' link_name)?
+    : identifier ('.' id_expression)* ('@' common_name)?
     ;
 
-package_name
+common_name
     : identifier
     ;
 
-implementation_type_name
-    : identifier ('.' id_expression)?
-    ;
-
-parameter_name
-    : identifier
-    ;
-
-reference_model_name
-    : identifier
-    ;
-
-main_model_name
-    : identifier
-    ;
-
-container_tableview_name
+regular_name
     : identifier ('.' id_expression)?
     ;
 
 aggregate_function_name
     : identifier ('.' id_expression)*
-    ;
-
-query_name
-    : identifier
     ;
 
 grantee_name
@@ -2395,7 +2359,7 @@ role_name
     ;
 
 constraint_name
-    : identifier ('.' id_expression)* ('@' link_name)?
+    : identifier ('.' id_expression)* ('@' common_name)?
     ;
 
 label_name
@@ -2414,25 +2378,9 @@ exception_name
     : identifier ('.' id_expression)*
     ;
 
-function_name
-    : identifier ('.' id_expression)?
-    ;
-
-procedure_name
-    : identifier ('.' id_expression)?
-    ;
-
-trigger_name
-    : identifier ('.' id_expression)?
-    ;
-
 variable_name
     : (INTRODUCER char_set_name)? id_expression ('.' id_expression)?
     | bind_variable
-    ;
-
-index_name
-    : identifier ('.' id_expression)?
     ;
 
 cursor_name
@@ -2445,29 +2393,17 @@ record_name
     | bind_variable
     ;
 
-collection_name
-    : identifier ('.' id_expression)?
-    ;
-
-link_name
-    : identifier
-    ;
-
 column_name
     : identifier ('.' id_expression)*
     ;
 
 tableview_name
     : identifier ('.' id_expression)?
-      ('@' link_name | /*TODO{!(input.LA(2) == BY)}?*/ partition_extension_clause)?
+      ('@' common_name | /*TODO{!(input.LA(2) == BY)}?*/ partition_extension_clause)?
     ;
 
 char_set_name
     : id_expression ('.' id_expression)*
-    ;
-
-synonym_name
-    : identifier
     ;
 
 // Represents a valid DB object name in DDL commands which are valid for several DB (or schema) objects.
@@ -2615,7 +2551,7 @@ general_element
     ;
 
 general_element_part
-    : (INTRODUCER char_set_name)? id_expression ('.' id_expression)* ('@' link_name)? function_argument?
+    : (INTRODUCER char_set_name)? id_expression ('.' id_expression)* ('@' common_name)? function_argument?
     ;
 
 table_element
