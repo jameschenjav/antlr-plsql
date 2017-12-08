@@ -22,5 +22,6 @@ The pattern `javln` is ready for internal usage (procedures/functions/packages/v
 3. `Run` -> `Edit Configurations`, `Add New Configuration` (button "+" on up-left corner), name it and set `Main class` to `PlSql`
 1. You may need to change the `Program arguments` to a valid sql file path as well
 1. `File` -> `Project Structure...`, `Platform Settings` -> `SDKs`, add `/usr/local/lib/antlr-4.7-complete.jar` into `Classpath` list
+1. You may need to increase your console buffer size via `Preferences`, `Editor` -> `General` -> `Console`, `Override console cycle buffer size`
 
 After restarting IDEA you should be able to Run `src/PlSql.kt`.

@@ -1,6 +1,7 @@
 {
 	"files.exclude": {
 		".vscode": true,
+		".idea": true,
 		"**/*.class": true,
 	}
 }
