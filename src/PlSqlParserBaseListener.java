@@ -2667,6 +2667,18 @@ public class PlSqlParserBaseListener implements PlSqlParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterExceptions(PlSqlParser.ExceptionsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExceptions(PlSqlParser.ExceptionsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterException_handler(PlSqlParser.Exception_handlerContext ctx) { }
 	/**
 	 * {@inheritDoc}

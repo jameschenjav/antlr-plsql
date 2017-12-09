@@ -2217,6 +2217,16 @@ public interface PlSqlParserListener extends ParseTreeListener {
 	 */
 	void exitBody(PlSqlParser.BodyContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link PlSqlParser#exceptions}.
+	 * @param ctx the parse tree
+	 */
+	void enterExceptions(PlSqlParser.ExceptionsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link PlSqlParser#exceptions}.
+	 * @param ctx the parse tree
+	 */
+	void exitExceptions(PlSqlParser.ExceptionsContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link PlSqlParser#exception_handler}.
 	 * @param ctx the parse tree
 	 */

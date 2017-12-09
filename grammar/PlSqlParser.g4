@@ -1126,7 +1126,7 @@ primary_key_clause
 // Anonymous PL/SQL code block
 
 anonymous_block
-    : (DECLARE seq_of_declare_specs)? BEGIN seq_of_statements (EXCEPTION exception_handler+)? END SEMICOLON
+    : (DECLARE seq_of_declare_specs)? BEGIN seq_of_statements exceptions END SEMICOLON
     ;
 
 // Common DDL Clauses
@@ -1371,8 +1371,12 @@ pipe_row_statement
     : PIPE ROW '(' expression ')';
 
 body
-    : BEGIN seq_of_statements (EXCEPTION exception_handler+)? END label_name?
+    : BEGIN seq_of_statements exceptions END label_name?
     ;
+
+exceptions
+	: (EXCEPTION exception_handler+)?
+	;
 
 // Body Specific Clause
 
