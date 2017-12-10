@@ -5,13 +5,11 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.util.*
-import kotlin.reflect.KClass
-import kotlin.reflect.full.findAnnotation
 
 class PlSql: PlSqlParserBaseListener() {
 	class Ast(val rootCtx: ParserRuleContext) {
-		val rootSymbol = SyntaxElements.Symbol(rootCtx, SyntaxElements.SymbolType.ROOT)
-		private val symbolStack: Stack<SyntaxElements.Symbol> = Stack()
+		val rootSymbol = Symbol(rootCtx, SymbolType.ROOT)
+		private val symbolStack: Stack<Symbol> = Stack()
 		private var currentScope = rootSymbol
 		private var currentSymbol = rootSymbol
 		private var pushedScope = false
@@ -25,20 +23,20 @@ class PlSql: PlSqlParserBaseListener() {
 			pushScope(currentSymbol)
 		}
 
-		fun pushScope(symbol: SyntaxElements.Symbol) {
+		fun pushScope(symbol: Symbol) {
 			symbolStack.push(symbol)
 			currentScope = symbol
 			pushedScope = true
 		}
 
-		fun popScope(): SyntaxElements.Symbol? {
+		fun popScope(): Symbol? {
 			if (symbolStack.size == 1) return null
 			val r = symbolStack.pop()
 			currentScope = symbolStack.peek()
 			return r
 		}
 
-		fun newSymbol(ctx: ParserRuleContext, type: SyntaxElements.SymbolType? = null): SyntaxElements.Symbol {
+		fun newSymbol(ctx: ParserRuleContext, type: SymbolType? = null): Symbol {
 			currentSymbol = currentScope.newSymbol(ctx, type)
 			return currentSymbol
 		}
@@ -52,40 +50,40 @@ class PlSql: PlSqlParserBaseListener() {
 		fun processNode(ctx: ParserRuleContext): ParserRuleContext {
 			when (ctx) {
 				is PlSqlParser.Create_function_bodyContext -> {
-					newSymbol(ctx, SyntaxElements.SymbolType.FUNCTION)
+					newSymbol(ctx, SymbolType.FUNCTION)
 					pushCurrent()
 					waitName = true
 				}
 				is PlSqlParser.Function_bodyContext -> {
-					newSymbol(ctx, SyntaxElements.SymbolType.FUNCTION)
+					newSymbol(ctx, SymbolType.FUNCTION)
 					pushCurrent()
 					waitName = true
 				}
 				is PlSqlParser.Create_procedure_bodyContext -> {
-					newSymbol(ctx, SyntaxElements.SymbolType.PROCEDURE)
+					newSymbol(ctx, SymbolType.PROCEDURE)
 					pushCurrent()
 					waitName = true
 				}
 				is PlSqlParser.Procedure_bodyContext -> {
-					newSymbol(ctx, SyntaxElements.SymbolType.PROCEDURE)
+					newSymbol(ctx, SymbolType.PROCEDURE)
 					pushCurrent()
 					waitName = true
 				}
 
 				is PlSqlParser.Variable_declarationContext -> {
-					newSymbol(ctx, SyntaxElements.SymbolType.VARIABLE)
+					newSymbol(ctx, SymbolType.VARIABLE)
 					waitName = true
 				}
 				is PlSqlParser.Cursor_declarationContext -> {
-					newSymbol(ctx, SyntaxElements.SymbolType.CURSOR)
+					newSymbol(ctx, SymbolType.CURSOR)
 					waitName = true
 				}
 				is PlSqlParser.Type_declarationContext -> {
-					newSymbol(ctx, SyntaxElements.SymbolType.TYPE)
+					newSymbol(ctx, SymbolType.TYPE)
 					waitName = true
 				}
 				is PlSqlParser.Exception_declarationContext -> {
-					newSymbol(ctx, SyntaxElements.SymbolType.EXCEPTION)
+					newSymbol(ctx, SymbolType.EXCEPTION)
 					waitName = true
 				}
 
@@ -178,7 +176,7 @@ class PlSql: PlSqlParserBaseListener() {
 
 			val json = """{
 "symbols": ${listener.ast?.toJson() ?: "null"},
-"tokens": [${lexer.allTokens.map { t -> SyntaxElements.TokenInfo.Json(t) }.joinToString(", ")}]
+"tokens": [${lexer.allTokens.map { t -> TokenInfo.Json(t) }.joinToString(", ")}]
 }"""
 			println(json)
 		}
