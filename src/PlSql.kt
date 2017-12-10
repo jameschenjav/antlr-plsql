@@ -29,19 +29,20 @@ class PlSql: PlSqlParserBaseListener() {
 	}
 
 	fun toJson(): String {
+//		|  "tokens":[${tokenList.joinToString(",") { tokenToJson(it) }}],
 		return """{
-		|  "syntax": ${document.toJson()},
-		|  "tokens": [${tokenList.joinToString(", ") { tokenToJson(it) }}]
+		|  "symbol_types":[${SynItem.Global.symbolTypes.joinToString(",") { "\"$it\"" }}]
+		|  "syntax":${document.toJson()},
 		|}""".trimMargin()
 	}
 
 	companion object {
 		private fun tokenToJson(token: Token) = """{
-			"r": ${token.line},
-			"c": ${token.charPositionInLine},
-			"b": ${token.startIndex},
-			"e": ${token.stopIndex+1},
-			"t": ${token.type}
+			"r":${token.line},
+			"c":${token.charPositionInLine},
+			"b":${token.startIndex},
+			"e":${token.stopIndex+1},
+			"t":${token.type}
 		}""".replace(Regex("\\n\\s*"), "")
 
 		@JvmStatic

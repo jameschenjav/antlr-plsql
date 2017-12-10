@@ -3,6 +3,7 @@ import org.json.JSONObject
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.isSubclassOf
 
 data class TokenInfo(
 	val rb: Int, // row begin
@@ -35,8 +36,6 @@ abstract class SynItem {
 		}
 	}
 
-	open protected val isSymbol = 0
-
 	open protected fun convertJson(jsonMap: MutableMap<String, Any?>) {
 		if (items.isNotEmpty()) jsonMap["es"] = items.map { it.toJsonMap() }
 	}
@@ -52,7 +51,7 @@ abstract class SynItem {
 	}
 
 	fun toJsonMap(): MutableMap<String, Any?> {
-		val jsonMap = mutableMapOf<String, Any?>("t" to type, "s" to isSymbol)
+		val jsonMap = mutableMapOf<String, Any?>("t" to type)
 		convertJson(jsonMap)
 		return jsonMap
 	}
@@ -63,10 +62,15 @@ abstract class SynItem {
 
 	object Global {
 		private val registered = mutableMapOf<KClass<out SynItem>, SyntaxMap>()
+		val symbolTypes = mutableListOf<String>()
 
 		fun getMap(synClass: KClass<out SynItem>): SyntaxMap {
 			var result = registered[synClass]
 			if (result != null) return result
+
+			if (synClass.isSubclassOf(Symbol::class)) {
+				symbolTypes.add(synClass.simpleName!!)
+			}
 
 			val syntax = synClass.findAnnotation<SubRules>()
 			val ruleList = syntax?.SubRuleList?.toList() ?: listOf()
@@ -143,8 +147,6 @@ class SelectStatement: SynItem()
 
 // Base Symbol Item
 abstract class Symbol: HolderItem() {
-	override val isSymbol = 1
-
 	protected var identifier: String = ""
 
 	override fun afterMatch(synItem: SynItem?, ctx: ParserRuleContext, synClass: KClass<out SynItem>) {
@@ -235,8 +237,15 @@ class Procedure: Symbol()
 class Function: Symbol()
 
 @SubRules([Procedure::class, Function::class])
-class Document: Symbol() {
-	fun setFile(fileName: String) {
-		identifier = fileName
+class Document: SynItem() {
+	private var fileName = ""
+
+	fun setFile(filename: String) {
+		fileName = filename
+	}
+
+	override fun convertJson(jsonMap: MutableMap<String, Any?>) {
+		jsonMap["filename"] = fileName
+		super.convertJson(jsonMap)
 	}
 }
