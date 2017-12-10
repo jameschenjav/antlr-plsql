@@ -19,20 +19,23 @@ abstract class SynItem {
 
 	protected val items = mutableListOf<SynItem>()
 
-	protected fun recursiveParse(ctx: ParserRuleContext) {
+	private fun recursiveParse(ctx: ParserRuleContext) {
 		val synClass = ruleMap[ctx::class]
 		if (synClass == null) {
-			val children = ctx.children
-			children?.forEach {c ->
-				val p = c.payload
-				if (p is ParserRuleContext) {
-					recursiveParse(p)
-				}
-			}
+			startParse(ctx)
 		} else {
 			val synItem = synClass.createInstance()
 			synItem.parse(ctx)
 			afterMatch(synItem, ctx, synClass)
+		}
+	}
+
+	protected fun startParse(ctx: ParserRuleContext) {
+		ctx.children?.forEach {c ->
+			val p = c.payload
+			if (p is ParserRuleContext) {
+				recursiveParse(p)
+			}
 		}
 	}
 
@@ -47,7 +50,7 @@ abstract class SynItem {
 	}
 
 	open fun parse(ctx: ParserRuleContext) {
-		recursiveParse(ctx)
+		startParse(ctx)
 	}
 
 	fun toJsonMap(): MutableMap<String, Any?> {
@@ -161,7 +164,7 @@ abstract class Symbol: HolderItem() {
 
 	override fun parse(ctx: ParserRuleContext) {
 		updateTokenInfo(ctx)
-		recursiveParse(ctx)
+		startParse(ctx)
 	}
 
 	override fun convertJson(jsonMap: MutableMap<String, Any?>) {
@@ -171,9 +174,144 @@ abstract class Symbol: HolderItem() {
 	}
 }
 
-// temp
-@OnRules([PlSqlParser.StatementContext::class])
-class Statement: HolderItem()
+// Expression Elements
+@OnRules([PlSqlParser.Query_blockContext::class])
+class QueryBlock: HolderItem()
+
+@OnRules([PlSqlParser.Relational_operatorContext::class])
+class RelationOp: HolderItem()
+
+// Expressions
+@OnRules([PlSqlParser.Cursor_expressionContext::class])
+@SubRules([QueryBlock::class])
+class CursorExpression: SynItem()
+
+@OnRules([PlSqlParser.Compound_expressionContext::class])
+@SubRules([Concatenation::class])
+class CompoundExpression: SynItem()
+
+@OnRules([PlSqlParser.Relational_expressionContext::class])
+@SubRules([RelationOp::class, RelationalExpression::class, CompoundExpression::class])
+class RelationalExpression: SynItem()
+
+@OnRules([PlSqlParser.Multiset_expressionContext::class])
+@SubRules([RelationalExpression::class, Concatenation::class])
+class MultisetExpression: SynItem()
+
+@OnRules([PlSqlParser.Logical_expressionContext::class])
+@SubRules([MultisetExpression::class])
+class LogicalExpression: SynItem()
+
+// Statement Elements
+@OnRules([PlSqlParser.ExpressionContext::class])
+@SubRules([CursorExpression::class, LogicalExpression::class])
+class Expression: SynItem()
+
+@OnRules([PlSqlParser.Id_expressionContext::class])
+class IdExpression: Identifier()
+
+@OnRules([PlSqlParser.ConcatenationContext::class])
+@SubRules([GeneralElement::class])
+class Concatenation: SynItem()
+
+// Assignment
+@OnRules([PlSqlParser.Bind_variableContext::class])
+class BindVariable: HolderItem()
+
+@OnRules([PlSqlParser.General_element_partContext::class])
+@SubRules([IdExpression::class, Argument::class])
+class GeneralElementPart: SynItem()
+
+@OnRules([PlSqlParser.General_elementContext::class])
+@SubRules([GeneralElementPart::class])
+class GeneralElement: SynItem()
+
+// If
+@OnRules([PlSqlParser.Elsif_partContext::class])
+@SubRules([Expression::class, StatementsBlock::class])
+class ElsIf: SynItem()
+
+@OnRules([PlSqlParser.Else_partContext::class])
+@SubRules([Expression::class, StatementsBlock::class])
+class Else: SynItem()
+
+// Loop
+@OnRules([PlSqlParser.Label_declarationContext::class])
+@SubRules([IdExpression::class])
+class LabelDecl: SynItem()
+
+@OnRules([PlSqlParser.Cursor_loop_paramContext::class])
+@SubRules([Identifier::class, Concatenation::class,
+	IdExpression::class, GeneralElement::class, BindVariable::class, Expression::class, SelectStatement::class])
+class CursorLoopParam: SynItem()
+
+// Func call
+@OnRules([PlSqlParser.Routine_nameContext::class])
+class RoutineName: Identifier()
+
+@OnRules([PlSqlParser.Keep_clauseContext::class])
+class KeepClause: HolderItem()
+
+@OnRules([PlSqlParser.ArgumentContext::class])
+@SubRules([Identifier::class, Expression::class, KeepClause::class])
+class Argument: SynItem()
+
+// Statements
+abstract class BaseStatement: SynItem()
+
+@OnRules([PlSqlParser.Assignment_statementContext::class])
+@SubRules([BindVariable::class, GeneralElement::class, Expression::class])
+class AssignStatement: BaseStatement()
+
+@OnRules([PlSqlParser.Continue_statementContext::class])
+@SubRules([IdExpression::class, Expression::class])
+class ContinueStatement: BaseStatement()
+
+@OnRules([PlSqlParser.Exit_statementContext::class])
+@SubRules([IdExpression::class, Expression::class])
+class ExitStatement: BaseStatement()
+
+@OnRules([PlSqlParser.Goto_statementContext::class])
+@SubRules([IdExpression::class])
+class GotoStatement: BaseStatement()
+
+@OnRules([PlSqlParser.If_statementContext::class])
+@SubRules([Expression::class, StatementsBlock::class, ElsIf::class, Else::class])
+class IfStatement: BaseStatement()
+
+@OnRules([PlSqlParser.Loop_statementContext::class])
+@SubRules([LabelDecl::class, Expression::class, CursorLoopParam::class, StatementsBlock::class, IdExpression::class])
+class LoopStatement: BaseStatement()
+
+@OnRules([PlSqlParser.Forall_statementContext::class])
+@SubRules([Identifier::class, Concatenation::class, SqlStatement::class])
+class ForallStatement: BaseStatement()
+
+@OnRules([PlSqlParser.Null_statementContext::class])
+class NullStatement: BaseStatement()
+
+@OnRules([PlSqlParser.Raise_statementContext::class])
+@SubRules([IdExpression::class, Identifier::class])
+class RaiseStatement: BaseStatement()
+
+@OnRules([PlSqlParser.Return_statementContext::class])
+@SubRules([Expression::class])
+class ReturnStatement: BaseStatement()
+
+@OnRules([PlSqlParser.Case_statementContext::class])
+@SubRules([Expression::class, StatementsBlock::class, IdExpression::class])
+class CaseStatement: BaseStatement()
+
+@OnRules([PlSqlParser.Sql_statementContext::class])
+class SqlStatement: BaseStatement()
+
+@OnRules([PlSqlParser.Function_callContext::class])
+@SubRules([RoutineName::class, Argument::class])
+class FuncCallStatement: BaseStatement()
+
+@OnRules([PlSqlParser.Pipe_row_statementContext::class])
+@SubRules([Expression::class])
+class PipRowStatement: BaseStatement()
 
 // Declarations
 @OnRules([PlSqlParser.Variable_declarationContext::class])
@@ -209,10 +347,25 @@ class DeclarationsBlock: SynItem()
 
 // Body
 @OnRules([PlSqlParser.Exception_nameContext::class])
-class ExceptionName: HolderItem()
+class ExceptionName: Identifier()
 
 @OnRules([PlSqlParser.Seq_of_statementsContext::class])
-@SubRules([Statement::class])
+@SubRules([
+	AssignStatement::class,
+	ContinueStatement::class,
+	ExitStatement::class,
+	GotoStatement::class,
+	IfStatement::class,
+	LoopStatement::class,
+	ForallStatement::class,
+	NullStatement::class,
+	RaiseStatement::class,
+	ReturnStatement::class,
+	CaseStatement::class,
+	SqlStatement::class,
+	FuncCallStatement::class,
+	PipRowStatement::class
+])
 class StatementsBlock: SynItem()
 
 @OnRules([PlSqlParser.Exception_handlerContext::class])

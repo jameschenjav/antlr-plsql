@@ -31,8 +31,8 @@ class PlSql: PlSqlParserBaseListener() {
 	fun toJson(): String {
 //		|  "tokens":[${tokenList.joinToString(",") { tokenToJson(it) }}],
 		return """{
-		|  "symbol_types":[${SynItem.Global.symbolTypes.joinToString(",") { "\"$it\"" }}]
-		|  "syntax":${document.toJson()},
+		|  "symbol_types":[${SynItem.Global.symbolTypes.joinToString(",") { "\"$it\"" }}],
+		|  "syntax":${document.toJson()}
 		|}""".trimMargin()
 	}
 
@@ -48,8 +48,8 @@ class PlSql: PlSqlParserBaseListener() {
 		@JvmStatic
 		fun main(args: Array<String>) {
 			val path = "./javln/"
-//			val fileName = "procedure_policy_update_item_reinsurance.sql"
-			val fileName = "procedure_policy_unposted_policy_trans.sql"
+			val fileName = "procedure_claim_change_cpay_prop_reco.sql"
+//			val fileName = "procedure_policy_unposted_policy_trans.sql"
 			val filePath = "$path$fileName"
 
 			val plsql = PlSql()

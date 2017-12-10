@@ -22,7 +22,9 @@
 hs_err_pid*
 
 *.tokens
-bin/
+bin/*.*
+!bin/gjg
+
 lib/
 out/
 javln/
@@ -33,5 +35,3 @@ grammar/*.java
 .idea/workspace.xml
 .idea/misc.xml
 .project
-
-!bin/gjg
