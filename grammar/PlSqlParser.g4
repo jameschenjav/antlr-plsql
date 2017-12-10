@@ -23,14 +23,10 @@ parser grammar PlSqlParser;
 options { tokenVocab=PlSqlLexer; }
 
 javln
-    : javln_head (javln_body (SEMICOLON | SOLIDUS)?)+ EOF
+    : sql_plus_command? (main (SEMICOLON | sql_plus_command)?)+ EOF
     ;
 
-javln_head
-    : SET DEFINE OFF
-    ;
-
-javln_body
+main
     : create_function_body
     | create_procedure_body
     | create_package
@@ -39,58 +35,58 @@ javln_body
     | create_view
     ;
 
-sql_script
-    : ((unit_statement | sql_plus_command) SEMICOLON?)* EOF
-    ;
+// sql_script
+//     : ((unit_statement | sql_plus_command) SEMICOLON?)* EOF
+//     ;
 
-unit_statement
-    : transaction_control_statements
-    | alter_function
-    | alter_package
-    | alter_procedure
-    | alter_sequence
-    | alter_trigger
-    | alter_type
-    | alter_table
-    | alter_index
-    | alter_user
+// unit_statement
+//     : transaction_control_statements
+//     | alter_function
+//     | alter_package
+//     | alter_procedure
+//     | alter_sequence
+//     | alter_trigger
+//     | alter_type
+//     | alter_table
+//     | alter_index
+//     | alter_user
 
-    | create_function_body
-    | create_procedure_body
-    | create_package
-    | create_package_body
+//     | create_function_body
+//     | create_procedure_body
+//     | create_package
+//     | create_package_body
 
-    | create_index
-    | create_table
-    | create_tablespace
-    | create_view //TODO
-//  | create_directory //TODO
-    | create_materialized_view
-    | create_materialized_view_log
-    | create_user
+//     | create_index
+//     | create_table
+//     | create_tablespace
+//     | create_view //TODO
+// //  | create_directory //TODO
+//     | create_materialized_view
+//     | create_materialized_view_log
+//     | create_user
 
-    | create_sequence
-    | create_trigger
-    | create_type
-    | create_synonym
+//     | create_sequence
+//     | create_trigger
+//     | create_type
+//     | create_synonym
 
-    | drop_function
-    | drop_package
-    | drop_procedure
-    | drop_sequence
-    | drop_trigger
-    | drop_type
-    | data_manipulation_language_statements
-    | drop_table
-    | drop_index
+//     | drop_function
+//     | drop_package
+//     | drop_procedure
+//     | drop_sequence
+//     | drop_trigger
+//     | drop_type
+//     | data_manipulation_language_statements
+//     | drop_table
+//     | drop_index
 
-    | comment_on_column
-    | comment_on_table
+//     | comment_on_column
+//     | comment_on_table
 
-    | anonymous_block
+//     | anonymous_block
 
-    | grant_statement
-    ;
+//     | grant_statement
+//     ;
 
 // DDL -> SQL Statements for Stored PL/SQL Units
 

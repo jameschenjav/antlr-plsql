@@ -1,176 +1,248 @@
 import org.antlr.v4.runtime.ParserRuleContext
-import org.antlr.v4.runtime.Token
+import org.json.JSONObject
 import kotlin.reflect.KClass
+import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.findAnnotation
 
-enum class SymbolType {
-	UNKNOWN,
-	TYPE,
-	VARIABLE,
-	CURSOR,
-	EXCEPTION,
-	PROCEDURE,
-	FUNCTION,
-	ROOT,
-}
+data class TokenData(
+	val line: Int,
+	val column: Int,
+	val index: Int
+)
+
+data class TokenInfo(
+	val tkn_beg: TokenData,
+	val tkn_end: TokenData,
+	val str_beg: Int,
+	val str_end: Int
+)
 
 abstract class SynItem {
-	val type: String
-		get() = javaClass.simpleName
-	abstract val text: String
-	open fun toJson(): String {
-		return ""
-	}
-}
+	private val ruleMap by lazy { this::class.rulesMap }
 
-open class Identifier(s: String) {
-	open val name = s.replace("\"", "").toLowerCase()
-	open val isSymbol: Boolean
-		get() = false
-	open fun toJson(): String {
-		return "\"$name\""
-	}
-}
+	protected val type = javaClass.simpleName!!
 
-class TokenInfo(token: Token) {
-	val line = token.line
-	val column = token.charPositionInLine
-	val start = token.startIndex
-	val stop = token.stopIndex
-	val index = token.tokenIndex
+	protected val items = mutableListOf<SynItem>()
 
-	fun toJson(): String {
-		return """{
-			"line": $line,
-			"column": $column,
-			"start": $start,
-			"stop": $stop,
-			"index": $index
-		}
-		""".replace(Regex("\\n\\s*"), "")
-	}
-
-	companion object {
-		fun Json(token: Token): String {
-			return """{
-				"line": ${token.line},
-				"column": ${token.charPositionInLine},
-				"start": ${token.startIndex},
-				"stop": ${token.stopIndex}
-			}""".replace(Regex("\\n\\s*"), "")
+	protected fun recursiveParse(ctx: ParserRuleContext) {
+		val synClass = ruleMap[ctx::class]
+		if (synClass == null) {
+			val children = ctx.children
+			children?.forEach {c ->
+				val p = c.payload
+				if (p is ParserRuleContext) {
+					recursiveParse(p)
+				}
+			}
+		} else {
+			val synItem = synClass.createInstance()
+			synItem.parse(ctx)
+			afterMatch(synItem, ctx, synClass)
 		}
 	}
-}
 
-class Statement(type: String): Identifier(type)
+	open protected val isSymbol = 0
 
-annotation class Syntax(val contextClass: KClass<out ParserRuleContext>)
+	open protected fun convertJson(jsonMap: MutableMap<String, Any?>) {
+		if (items.isNotEmpty()) jsonMap["items"] = items.map { it.toJsonMap() }
+	}
 
-open class SymbolSyntax(val ctx: ParserRuleContext) {
-	val elements = mutableListOf<SymbolSyntax>()
-
-	fun defaultParse(ctx: ParserRuleContext) {
-		//
+	open protected fun afterMatch(synItem: SynItem?, ctx: ParserRuleContext, synClass: KClass<out SynItem>) {
+		if (synItem != null) {
+			items.add(synItem)
+		}
 	}
 
 	open fun parse(ctx: ParserRuleContext) {
-		if (this::class.contextClass == ctx::class) {}
+		recursiveParse(ctx)
 	}
-}
 
-@Syntax(PlSqlParser.Javln_bodyContext::class)
-class SyntaxJavln(ctx: ParserRuleContext): SymbolSyntax(ctx)
+	fun toJsonMap(): MutableMap<String, Any?> {
+		val jsonMap = mutableMapOf<String, Any?>("type" to type, "is_symbol" to isSymbol)
+		convertJson(jsonMap)
+		return jsonMap
+	}
 
-class SymbolTokens(ctx: ParserRuleContext) {
-	val start = TokenInfo(ctx.start)
-	val stop = TokenInfo(ctx.stop)
-}
+	fun toJson(): String {
+		return JSONObject(toJsonMap()).toString()
+	}
 
-open class Symbol constructor(ctx: ParserRuleContext, type: SymbolType?, parent: Symbol? = null) : Identifier("") {
-	private var symbolName: String = ""
-	private var symbolType: SymbolType? = type
-	private val symbolParent: Symbol? = parent
-	val tokens = SymbolTokens(ctx)
+	object Global {
+		private val registered = mutableMapOf<KClass<out SynItem>, SyntaxMap>()
 
-	val type: SymbolType
-		get() = symbolType ?: SymbolType.UNKNOWN
-	val parent: Symbol?
-		get() = symbolParent
+		fun getMap(synClass: KClass<out SynItem>): SyntaxMap {
+			var result = registered[synClass]
+			if (result != null) return result
 
-	fun assginType(t: SymbolType): Symbol {
-		if (symbolType == null && t > SymbolType.UNKNOWN && t < SymbolType.ROOT) {
-			symbolType = t
+			val syntax = synClass.findAnnotation<SubRules>()
+			val ruleList = syntax?.SubRuleList?.toList() ?: listOf()
+			val map = mutableMapOf<KClass<out ParserRuleContext>, KClass<out SynItem>>()
+			for (rule in ruleList) {
+				rule.rules.forEach { map[it] = rule }
+			}
+
+			result = map.toMap()
+			registered[synClass] = result
+			return result
 		}
-		return this
 	}
+}
 
-	fun assignName(v: String): Symbol {
-		val s = v.replace("\"", "").toLowerCase()
-		if (symbolName != "" || s == "") return this
-		symbolName = s
-		parent?.scope?.set(s, this)
-		return this
-	}
+typealias SyntaxMap = Map<KClass<out ParserRuleContext>, KClass<out SynItem>>
 
-	override val isSymbol: Boolean
-		get() = true
-	override val name: String
-		get() = symbolName
+annotation class OnRules(val Rules: Array<KClass<out ParserRuleContext>>)
+annotation class SubRules(val SubRuleList: Array<KClass<out SynItem>>)
 
-	val hasScope: Boolean
-		get() = type >= SymbolType.PROCEDURE
+val KClass<out SynItem>.rules: Array<KClass<out ParserRuleContext>>
+	get() = this.findAnnotation<OnRules>()?.Rules ?: arrayOf()
 
-	val scope: MutableMap<String, Symbol> = mutableMapOf()
-	val symbolList: MutableList<Symbol> = mutableListOf()
-	val idMap: MutableMap<String, Identifier> = mutableMapOf()
+val KClass<out SynItem>.rulesMap: SyntaxMap
+	get() = SynItem.Global.getMap(this)
 
-	fun newSymbol(ctx: ParserRuleContext, type: SymbolType? = null): Symbol {
-		val symbol = Symbol(ctx, type, this)
-		symbolList.add(symbol)
-		return symbol
-	}
+open class HolderItem : SynItem() {
+	private lateinit var tokenInfo: TokenInfo
 
-	fun getIdentifier(name: String): Identifier {
-		var id = idMap[name]
-		if (id != null) return id
-
-		id = Identifier(name)
-		idMap[name] = id
-		return id
-	}
-
-	fun setIdentifier(name: String): Symbol {
-		if (idMap.containsKey(name)) return this
-		idMap[name] = Identifier(name)
-		return this
-	}
-
-	fun findSymbol(s: String): Symbol? {
-		return scope[s] ?: parent?.findSymbol(s)
-	}
-
-	override fun toJson(): String {
-		val obj = mutableMapOf(
-			"name" to "\"${name}\"",
-			"type" to "\"${type}\"",
-			"token_index" to """{
-				"start": ${tokens.start.index},
-				"stop": ${tokens.stop.index}
-			}""".replace(Regex("\\n\\s*"), "")
+	protected fun updateTokenInfo(ctx: ParserRuleContext) {
+		val start = ctx.start
+		val stop = ctx.stop
+		tokenInfo = TokenInfo(
+			TokenData(start.line, start.charPositionInLine, start.tokenIndex),
+			TokenData(stop.line, stop.charPositionInLine, stop.tokenIndex),
+			start.startIndex,
+			stop.startIndex
 		)
+	}
 
-		if (symbolList.isNotEmpty()) {
-			val ss = mutableListOf<String>()
-			symbolList.forEach { s -> ss.add(s.toJson()) }
-			obj["symbols"] = "[${ss.joinToString(", ")}]"
-		}
+	override fun parse(ctx: ParserRuleContext) {
+		updateTokenInfo(ctx)
+	}
 
-		return "{${obj.map { (k, v) -> "\"${k}\": ${v}" }.joinToString(", ")}}"
+	override fun convertJson(jsonMap: MutableMap<String, Any?>) {
+		jsonMap["token_info"] = tokenInfo
 	}
 }
 
-val KClass<out SymbolSyntax>.contextClass: KClass<out ParserRuleContext>
-	get() {
-		val syntax = this.findAnnotation<Syntax>()
-		return syntax?.contextClass ?: ParserRuleContext::class
+// Basic Items
+@OnRules([PlSqlParser.Regular_nameContext::class, PlSqlParser.Common_nameContext::class, PlSqlParser.IdentifierContext::class])
+open class Identifier: SynItem() {
+	var name = ""
+
+	override fun parse(ctx: ParserRuleContext) {
+		name = ctx.text.trim('"').toLowerCase()
 	}
+
+	override fun convertJson(jsonMap: MutableMap<String, Any?>) {
+		jsonMap["name"] = name
+	}
+}
+
+@OnRules([PlSqlParser.Type_nameContext::class])
+class TypeName: Identifier()
+
+@OnRules([PlSqlParser.Type_specContext::class])
+@SubRules([TypeName::class])
+class TypeSpec: SynItem()
+
+@OnRules([PlSqlParser.Select_statementContext::class])
+@SubRules([TypeName::class])
+class SelectStatement: SynItem()
+
+// Base Symbol Item
+abstract class Symbol: HolderItem() {
+	override val isSymbol = 1
+
+	protected var identifier: String = ""
+
+	override fun afterMatch(synItem: SynItem?, ctx: ParserRuleContext, synClass: KClass<out SynItem>) {
+		if (synItem == null) return
+		when (synItem) {
+			is Identifier -> {
+				identifier = synItem.name
+			}
+		}
+		items.add(synItem)
+	}
+
+	override fun parse(ctx: ParserRuleContext) {
+		updateTokenInfo(ctx)
+		recursiveParse(ctx)
+	}
+
+	override fun convertJson(jsonMap: MutableMap<String, Any?>) {
+		jsonMap["identifier"] = identifier
+		if (items.isNotEmpty()) jsonMap["items"] = items.map { it.toJsonMap() }
+		super.convertJson(jsonMap)
+	}
+}
+
+// temp
+@OnRules([PlSqlParser.StatementContext::class])
+class Statement: HolderItem()
+
+// Declarations
+@OnRules([PlSqlParser.Variable_declarationContext::class])
+@SubRules([Identifier::class, TypeSpec::class])
+class VariableDecl: Symbol()
+
+@OnRules([PlSqlParser.Cursor_declarationContext::class])
+@SubRules([Identifier::class, SelectStatement::class])
+class CursorDecl: Symbol()
+
+@OnRules([PlSqlParser.Type_declarationContext::class])
+@SubRules([Identifier::class, SelectStatement::class])
+class TypeDecl: Symbol()
+
+// Signature
+@OnRules([PlSqlParser.Parameter_descContext::class])
+class ParamDesc: SynItem()
+
+@OnRules([PlSqlParser.ParameterContext::class])
+@SubRules([Identifier::class, ParamDesc::class, TypeSpec::class])
+class Parameter: SynItem()
+
+@OnRules([PlSqlParser.ParametersContext::class])
+@SubRules([Parameter::class])
+class ParametersBlock: SynItem()
+
+@OnRules([PlSqlParser.Invoker_rights_clauseContext::class])
+class InvokerRights: SynItem()
+
+@OnRules([PlSqlParser.Seq_of_declare_specsContext::class])
+@SubRules([VariableDecl::class, CursorDecl::class, TypeDecl::class, Procedure::class, Function::class])
+class DeclarationsBlock: SynItem()
+
+// Body
+@OnRules([PlSqlParser.Exception_nameContext::class])
+class ExceptionName: HolderItem()
+
+@OnRules([PlSqlParser.Seq_of_statementsContext::class])
+@SubRules([Statement::class])
+class StatementsBlock: SynItem()
+
+@OnRules([PlSqlParser.Exception_handlerContext::class])
+@SubRules([ExceptionName::class, StatementsBlock::class])
+class ExceptionCase: SynItem()
+
+@OnRules([PlSqlParser.ExceptionsContext::class])
+@SubRules([ExceptionCase::class])
+class ExceptionBlock: SynItem()
+
+@OnRules([PlSqlParser.BodyContext::class])
+@SubRules([StatementsBlock::class, ExceptionBlock::class])
+class Body: SynItem()
+
+// Procedure/Function
+@OnRules([PlSqlParser.Procedure_bodyContext::class, PlSqlParser.Create_procedure_bodyContext::class])
+@SubRules([Identifier::class, ParametersBlock::class, InvokerRights::class, DeclarationsBlock::class, Body::class])
+class Procedure: Symbol()
+
+@OnRules([PlSqlParser.Function_bodyContext::class, PlSqlParser.Create_function_bodyContext::class])
+@SubRules([Identifier::class, ParametersBlock::class, InvokerRights::class, DeclarationsBlock::class, Body::class])
+class Function: Symbol()
+
+@SubRules([Procedure::class, Function::class])
+class Document: Symbol() {
+	fun setFile(fileName: String) {
+		identifier = fileName
+	}
+}

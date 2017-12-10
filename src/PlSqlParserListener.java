@@ -17,45 +17,15 @@ public interface PlSqlParserListener extends ParseTreeListener {
 	 */
 	void exitJavln(PlSqlParser.JavlnContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#javln_head}.
+	 * Enter a parse tree produced by {@link PlSqlParser#main}.
 	 * @param ctx the parse tree
 	 */
-	void enterJavln_head(PlSqlParser.Javln_headContext ctx);
+	void enterMain(PlSqlParser.MainContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#javln_head}.
+	 * Exit a parse tree produced by {@link PlSqlParser#main}.
 	 * @param ctx the parse tree
 	 */
-	void exitJavln_head(PlSqlParser.Javln_headContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#javln_body}.
-	 * @param ctx the parse tree
-	 */
-	void enterJavln_body(PlSqlParser.Javln_bodyContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#javln_body}.
-	 * @param ctx the parse tree
-	 */
-	void exitJavln_body(PlSqlParser.Javln_bodyContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#sql_script}.
-	 * @param ctx the parse tree
-	 */
-	void enterSql_script(PlSqlParser.Sql_scriptContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#sql_script}.
-	 * @param ctx the parse tree
-	 */
-	void exitSql_script(PlSqlParser.Sql_scriptContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#unit_statement}.
-	 * @param ctx the parse tree
-	 */
-	void enterUnit_statement(PlSqlParser.Unit_statementContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#unit_statement}.
-	 * @param ctx the parse tree
-	 */
-	void exitUnit_statement(PlSqlParser.Unit_statementContext ctx);
+	void exitMain(PlSqlParser.MainContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link PlSqlParser#drop_function}.
 	 * @param ctx the parse tree

@@ -371,7 +371,7 @@ DEFAULTS:                     D E F A U L T S;
 DEFERRABLE:                   D E F E R R A B L E;
 DEFERRED:                     D E F E R R E D;
 // DEFINED:                      D E F I N E D;
-DEFINE:                       D E F I N E;
+// DEFINE:                       D E F I N E;
 DEFINER:                      D E F I N E R;
 // DEGREE:                       D E G R E E;
 // DELAY:                        D E L A Y;
