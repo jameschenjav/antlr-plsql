@@ -7,12 +7,13 @@ import java.io.File
 
 class PlSql: PlSqlParserBaseListener() {
 	private val document by lazy { Document() }
+	private var tokenList = listOf<Token>()
 
 	override fun exitMain(ctx: PlSqlParser.MainContext?) {
 		document.parse(ctx!!)
 	}
 
-	fun parse(fileName: String): String {
+	fun parse(fileName: String): PlSql {
 		val file = File(fileName)
 		val stream = ByteArrayInputStream(file.readBytes())
 		val lexer = PlSqlLexer(CharStreams.fromStream(stream))
@@ -23,18 +24,24 @@ class PlSql: PlSqlParserBaseListener() {
 		document.setFile(file.name)
 		walker.walk(this, parser.javln())
 		lexer.reset()
+		tokenList = lexer.allTokens
+		return this
+	}
+
+	fun toJson(): String {
 		return """{
-		|  "symbols": ${document.toJson()},
-		|  "tokens": [${lexer.allTokens.joinToString(", ") { tokenToJson(it) }}]
+		|  "syntax": ${document.toJson()},
+		|  "tokens": [${tokenList.joinToString(", ") { tokenToJson(it) }}]
 		|}""".trimMargin()
 	}
 
 	companion object {
 		private fun tokenToJson(token: Token) = """{
-			"line": ${token.line},
-			"column": ${token.charPositionInLine},
-			"start": ${token.startIndex},
-			"stop": ${token.stopIndex}
+			"r": ${token.line},
+			"c": ${token.charPositionInLine},
+			"b": ${token.startIndex},
+			"e": ${token.stopIndex+1},
+			"t": ${token.type}
 		}""".replace(Regex("\\n\\s*"), "")
 
 		@JvmStatic
@@ -45,7 +52,7 @@ class PlSql: PlSqlParserBaseListener() {
 			val filePath = "$path$fileName"
 
 			val plsql = PlSql()
-			println(plsql.parse(filePath))
+			println(plsql.parse(filePath).toJson())
 		}
 	}
 }

@@ -4,17 +4,11 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.findAnnotation
 
-data class TokenData(
-	val line: Int,
-	val column: Int,
-	val index: Int
-)
-
 data class TokenInfo(
-	val tkn_beg: TokenData,
-	val tkn_end: TokenData,
-	val str_beg: Int,
-	val str_end: Int
+	val rb: Int, // row begin
+	val re: Int, // row end
+	val tb: Int, // token begin index
+	val te: Int // token end
 )
 
 abstract class SynItem {
@@ -44,7 +38,7 @@ abstract class SynItem {
 	open protected val isSymbol = 0
 
 	open protected fun convertJson(jsonMap: MutableMap<String, Any?>) {
-		if (items.isNotEmpty()) jsonMap["items"] = items.map { it.toJsonMap() }
+		if (items.isNotEmpty()) jsonMap["es"] = items.map { it.toJsonMap() }
 	}
 
 	open protected fun afterMatch(synItem: SynItem?, ctx: ParserRuleContext, synClass: KClass<out SynItem>) {
@@ -58,7 +52,7 @@ abstract class SynItem {
 	}
 
 	fun toJsonMap(): MutableMap<String, Any?> {
-		val jsonMap = mutableMapOf<String, Any?>("type" to type, "is_symbol" to isSymbol)
+		val jsonMap = mutableMapOf<String, Any?>("t" to type, "s" to isSymbol)
 		convertJson(jsonMap)
 		return jsonMap
 	}
@@ -106,10 +100,10 @@ open class HolderItem : SynItem() {
 		val start = ctx.start
 		val stop = ctx.stop
 		tokenInfo = TokenInfo(
-			TokenData(start.line, start.charPositionInLine, start.tokenIndex),
-			TokenData(stop.line, stop.charPositionInLine, stop.tokenIndex),
-			start.startIndex,
-			stop.startIndex
+			start.line,
+			stop.line,
+			start.tokenIndex,
+			stop.tokenIndex
 		)
 	}
 
@@ -118,7 +112,7 @@ open class HolderItem : SynItem() {
 	}
 
 	override fun convertJson(jsonMap: MutableMap<String, Any?>) {
-		jsonMap["token_info"] = tokenInfo
+		jsonMap["tk"] = tokenInfo
 	}
 }
 
@@ -132,7 +126,7 @@ open class Identifier: SynItem() {
 	}
 
 	override fun convertJson(jsonMap: MutableMap<String, Any?>) {
-		jsonMap["name"] = name
+		jsonMap["n"] = name
 	}
 }
 
@@ -169,8 +163,8 @@ abstract class Symbol: HolderItem() {
 	}
 
 	override fun convertJson(jsonMap: MutableMap<String, Any?>) {
-		jsonMap["identifier"] = identifier
-		if (items.isNotEmpty()) jsonMap["items"] = items.map { it.toJsonMap() }
+		jsonMap["n"] = identifier
+		if (items.isNotEmpty()) jsonMap["es"] = items.map { it.toJsonMap() }
 		super.convertJson(jsonMap)
 	}
 }
@@ -198,7 +192,7 @@ class ParamDesc: SynItem()
 
 @OnRules([PlSqlParser.ParameterContext::class])
 @SubRules([Identifier::class, ParamDesc::class, TypeSpec::class])
-class Parameter: SynItem()
+class Parameter: Symbol()
 
 @OnRules([PlSqlParser.ParametersContext::class])
 @SubRules([Parameter::class])
