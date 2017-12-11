@@ -38,9 +38,13 @@ abstract class SynItem {
 			}
 		}
 	}
+	
+	protected fun addItemsToMap(dataMap: MutableMap<String, Any?>) {
+		if (items.isNotEmpty()) dataMap["es"] = items.map { it.toDataMap() }
+	}
 
-	open protected fun convertJson(jsonMap: MutableMap<String, Any?>) {
-		if (items.isNotEmpty()) jsonMap["es"] = items.map { it.toJsonMap() }
+	open protected fun addDataToMap(dataMap: MutableMap<String, Any?>) {
+		addItemsToMap(dataMap)
 	}
 
 	open protected fun afterMatch(synItem: SynItem?, ctx: ParserRuleContext, synClass: KClass<out SynItem>) {
@@ -53,14 +57,14 @@ abstract class SynItem {
 		startParse(ctx)
 	}
 
-	fun toJsonMap(): MutableMap<String, Any?> {
-		val jsonMap = mutableMapOf<String, Any?>("t" to type)
-		convertJson(jsonMap)
-		return jsonMap
+	fun toDataMap(): MutableMap<String, Any?> {
+		val dataMap = mutableMapOf<String, Any?>("t" to type)
+		addDataToMap(dataMap)
+		return dataMap
 	}
 
 	fun toJson(): String {
-		return JSONObject(toJsonMap()).toString()
+		return JSONObject(toDataMap()).toString()
 	}
 
 	object Global {
@@ -100,7 +104,7 @@ val KClass<out SynItem>.rules: Array<KClass<out ParserRuleContext>>
 val KClass<out SynItem>.rulesMap: SyntaxMap
 	get() = SynItem.Global.getMap(this)
 
-open class HolderItem : SynItem() {
+abstract class HolderItem : SynItem() {
 	private lateinit var tokenInfo: TokenInfo
 
 	protected fun updateTokenInfo(ctx: ParserRuleContext) {
@@ -118,8 +122,20 @@ open class HolderItem : SynItem() {
 		updateTokenInfo(ctx)
 	}
 
-	override fun convertJson(jsonMap: MutableMap<String, Any?>) {
-		jsonMap["tk"] = tokenInfo
+	override fun addDataToMap(dataMap: MutableMap<String, Any?>) {
+		dataMap["tk"] = tokenInfo
+	}
+}
+
+abstract class TextItem: HolderItem() {
+	private var text = ""
+
+	override fun parse(ctx: ParserRuleContext) {
+		text = ctx.text
+	}
+
+	override fun addDataToMap(dataMap: MutableMap<String, Any?>) {
+		dataMap["tx"] = text
 	}
 }
 
@@ -132,16 +148,19 @@ open class Identifier: SynItem() {
 		name = ctx.text.trim('"').toLowerCase()
 	}
 
-	override fun convertJson(jsonMap: MutableMap<String, Any?>) {
-		jsonMap["n"] = name
+	override fun addDataToMap(dataMap: MutableMap<String, Any?>) {
+		dataMap["n"] = name
 	}
 }
 
 @OnRules([PlSqlParser.Type_nameContext::class])
 class TypeName: Identifier()
 
+@OnRules([PlSqlParser.DatatypeContext::class])
+class DataType: TextItem()
+
 @OnRules([PlSqlParser.Type_specContext::class])
-@SubRules([TypeName::class])
+@SubRules([TypeName::class, DataType::class])
 class TypeSpec: SynItem()
 
 @OnRules([PlSqlParser.Select_statementContext::class])
@@ -167,10 +186,10 @@ abstract class Symbol: HolderItem() {
 		startParse(ctx)
 	}
 
-	override fun convertJson(jsonMap: MutableMap<String, Any?>) {
-		jsonMap["n"] = identifier
-		if (items.isNotEmpty()) jsonMap["es"] = items.map { it.toJsonMap() }
-		super.convertJson(jsonMap)
+	override fun addDataToMap(dataMap: MutableMap<String, Any?>) {
+		dataMap["n"] = identifier
+		addItemsToMap(dataMap)
+		super.addDataToMap(dataMap)
 	}
 }
 
@@ -178,40 +197,16 @@ abstract class Symbol: HolderItem() {
 @OnRules([PlSqlParser.Query_blockContext::class])
 class QueryBlock: HolderItem()
 
-@OnRules([PlSqlParser.Relational_operatorContext::class])
-class RelationOp: HolderItem()
-
-// Expressions
-@OnRules([PlSqlParser.Cursor_expressionContext::class])
-@SubRules([QueryBlock::class])
-class CursorExpression: SynItem()
-
-@OnRules([PlSqlParser.Compound_expressionContext::class])
-@SubRules([Concatenation::class])
-class CompoundExpression: SynItem()
-
-@OnRules([PlSqlParser.Relational_expressionContext::class])
-@SubRules([RelationOp::class, RelationalExpression::class, CompoundExpression::class])
-class RelationalExpression: SynItem()
-
-@OnRules([PlSqlParser.Multiset_expressionContext::class])
-@SubRules([RelationalExpression::class, Concatenation::class])
-class MultisetExpression: SynItem()
-
-@OnRules([PlSqlParser.Logical_expressionContext::class])
-@SubRules([MultisetExpression::class])
-class LogicalExpression: SynItem()
-
 // Statement Elements
 @OnRules([PlSqlParser.ExpressionContext::class])
-@SubRules([CursorExpression::class, LogicalExpression::class])
+@SubRules([QueryBlock::class, Concatenation::class])
 class Expression: SynItem()
 
 @OnRules([PlSqlParser.Id_expressionContext::class])
 class IdExpression: Identifier()
 
 @OnRules([PlSqlParser.ConcatenationContext::class])
-@SubRules([GeneralElement::class])
+@SubRules([GeneralElementPart::class])
 class Concatenation: SynItem()
 
 // Assignment
@@ -221,10 +216,6 @@ class BindVariable: HolderItem()
 @OnRules([PlSqlParser.General_element_partContext::class])
 @SubRules([IdExpression::class, Argument::class])
 class GeneralElementPart: SynItem()
-
-@OnRules([PlSqlParser.General_elementContext::class])
-@SubRules([GeneralElementPart::class])
-class GeneralElement: SynItem()
 
 // If
 @OnRules([PlSqlParser.Elsif_partContext::class])
@@ -242,7 +233,7 @@ class LabelDecl: SynItem()
 
 @OnRules([PlSqlParser.Cursor_loop_paramContext::class])
 @SubRules([Identifier::class, Concatenation::class,
-	IdExpression::class, GeneralElement::class, BindVariable::class, Expression::class, SelectStatement::class])
+	IdExpression::class, GeneralElementPart::class, BindVariable::class, Expression::class, SelectStatement::class])
 class CursorLoopParam: SynItem()
 
 // Func call
@@ -257,10 +248,20 @@ class KeepClause: HolderItem()
 class Argument: SynItem()
 
 // Statements
-abstract class BaseStatement: SynItem()
+abstract class BaseStatement: HolderItem() {
+	override fun parse(ctx: ParserRuleContext) {
+		updateTokenInfo(ctx)
+		startParse(ctx)
+	}
+
+	override fun addDataToMap(dataMap: MutableMap<String, Any?>) {
+		super.addDataToMap(dataMap)
+		addItemsToMap(dataMap)
+	}
+}
 
 @OnRules([PlSqlParser.Assignment_statementContext::class])
-@SubRules([BindVariable::class, GeneralElement::class, Expression::class])
+@SubRules([BindVariable::class, GeneralElementPart::class, Expression::class])
 class AssignStatement: BaseStatement()
 
 @OnRules([PlSqlParser.Continue_statementContext::class])
@@ -327,11 +328,8 @@ class CursorDecl: Symbol()
 class TypeDecl: Symbol()
 
 // Signature
-@OnRules([PlSqlParser.Parameter_descContext::class])
-class ParamDesc: SynItem()
-
 @OnRules([PlSqlParser.ParameterContext::class])
-@SubRules([Identifier::class, ParamDesc::class, TypeSpec::class])
+@SubRules([Identifier::class, TypeSpec::class])
 class Parameter: Symbol()
 
 @OnRules([PlSqlParser.ParametersContext::class])
@@ -397,8 +395,8 @@ class Document: SynItem() {
 		fileName = filename
 	}
 
-	override fun convertJson(jsonMap: MutableMap<String, Any?>) {
-		jsonMap["filename"] = fileName
-		super.convertJson(jsonMap)
+	override fun addDataToMap(dataMap: MutableMap<String, Any?>) {
+		dataMap["filename"] = fileName
+		super.addDataToMap(dataMap)
 	}
 }

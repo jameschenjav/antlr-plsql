@@ -8,10 +8,9 @@ Forked from https://github.com/antlr/grammars-v4/tree/master/plsql
 1. `echo 'export CLASSPATH=".:/usr/local/lib/antlr-4.7-complete.jar:$CLASSPATH"' >> ~/.bash_profile`
 1. `cd grammar && ./build && cd ../bin`
 
-Now it's ready to call `grun PlSql <pattern> -gui <file>` to test grammars.
-The pattern `javln` is ready for internal usage (procedures/functions/packages/views in folder `fs/db/db_code/gerrit`)
+Now it's ready to call `./gjg <file>` to test grammars.
 
-## Open with IDEA (Community Edition)
+## Open Code with IDEA (Community Edition)
 
 1. You may need `Tools` -> `Kotlin` -> `Configure Kotlin in Project`
 1. You may need to add lines below into `Help` -> `Edit Custom Properties...`
@@ -25,3 +24,12 @@ The pattern `javln` is ready for internal usage (procedures/functions/packages/v
 1. You may need to increase your console buffer size via `Preferences`, `Editor` -> `General` -> `Console`, `Override console cycle buffer size` like 10MB
 
 After restarting IDEA you should be able to Run `src/PlSql.kt`.
+
+## Pack JAR
+
+1. Build with IDEA. The files should be placed in `target/classes`
+1. Run `bin/pack` to generate JAR file as `bin/PlSql.jar`
+
+## Parse PL/SQL Files
+
+This Repo ships prebuilt PlSql.jar and dependencies (in `lib` folder). You are able to call `bin/pps` to parse multiple PL/SQL files. It will generate JSON output.

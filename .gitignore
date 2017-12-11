@@ -22,10 +22,11 @@
 hs_err_pid*
 
 *.tokens
+bin/.*
 bin/*.*
-!bin/gjg
+lib/.*
+lib/*.*
 
-lib/
 out/
 javln/
 target/
@@ -35,3 +36,6 @@ grammar/*.java
 .idea/workspace.xml
 .idea/misc.xml
 .project
+
+!bin/*.jar
+!lib/*.jar
