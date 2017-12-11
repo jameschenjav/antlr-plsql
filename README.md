@@ -2,13 +2,27 @@
 Antlr PL/SQL Lexer Parser
 Forked from https://github.com/antlr/grammars-v4/tree/master/plsql
 
-## Usage (for Mac)
+## Setup Instructions
+
+You need to get JDK and Kotlin installed. For Mac:
+1. `brew cask install java`
+1. `brew install kotlin`
+
+### Generate JSON with Prebuilt JARs
+
+- `lib/pps`
+
+This Repo ships prebuilt PlSql.jar and dependencies (in `lib` folder). You are able to call `lib/pps` to parse multiple PL/SQL files. It will generate JSON output.
+
+### Antlr4 GUI
 
 1. `brew install antlr`
 1. `echo 'export CLASSPATH=".:/usr/local/lib/antlr-4.7-complete.jar:$CLASSPATH"' >> ~/.bash_profile`
 1. `cd grammar && ./build && cd ../bin`
 
-Now it's ready to call `./gjg <file>` to test grammars.
+Now it's ready to call `./gjg <file>` to test grammars. 
+
+---
 
 ## Open Code with IDEA (Community Edition)
 
@@ -28,8 +42,4 @@ After restarting IDEA you should be able to Run `src/PlSql.kt`.
 ## Pack JAR
 
 1. Build with IDEA. The files should be placed in `target/classes`
-1. Run `bin/pack` to generate JAR file as `bin/PlSql.jar`
-
-## Parse PL/SQL Files
-
-This Repo ships prebuilt PlSql.jar and dependencies (in `lib` folder). You are able to call `bin/pps` to parse multiple PL/SQL files. It will generate JSON output.
+1. Run `bin/pack` to generate JAR file as `lib/PlSql.jar`

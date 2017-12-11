@@ -1,0 +1,3 @@
+#!/bin/sh
+jar_dir=$(dirname "$0")
+kotlin -cp "$jar_dir/PlSql.jar:$jar_dir/json-20171018.jar:$jar_dir/antlr4-runtime-4.7.jar" PlSql $@
