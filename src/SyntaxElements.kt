@@ -327,6 +327,10 @@ class CursorDecl: Symbol()
 @SubRules([Identifier::class, SelectStatement::class])
 class TypeDecl: Symbol()
 
+@OnRules([PlSqlParser.Exception_declarationContext::class])
+@SubRules([Identifier::class])
+class ExceptionDecl: Symbol()
+
 // Signature
 @OnRules([PlSqlParser.ParameterContext::class])
 @SubRules([Identifier::class, TypeSpec::class])
@@ -340,7 +344,7 @@ class ParametersBlock: SynItem()
 class InvokerRights: SynItem()
 
 @OnRules([PlSqlParser.Seq_of_declare_specsContext::class])
-@SubRules([VariableDecl::class, CursorDecl::class, TypeDecl::class, Procedure::class, Function::class])
+@SubRules([VariableDecl::class, CursorDecl::class, TypeDecl::class, ExceptionDecl::class, Procedure::class, Function::class])
 class DeclarationsBlock: SynItem()
 
 // Body
@@ -387,7 +391,24 @@ class Procedure: Symbol()
 @SubRules([Identifier::class, ParametersBlock::class, InvokerRights::class, DeclarationsBlock::class, Body::class])
 class Function: Symbol()
 
-@SubRules([Procedure::class, Function::class])
+@OnRules([PlSqlParser.Create_package_bodyContext::class])
+@SubRules([VariableDecl::class, CursorDecl::class, TypeDecl::class, ExceptionDecl::class, Procedure::class, Function::class])
+class Package: Symbol()
+
+// Table/View
+@OnRules([PlSqlParser.Tableview_nameContext::class])
+class TableViewName: Identifier()
+
+@OnRules([PlSqlParser.Create_tableContext::class])
+@SubRules([TableViewName::class])
+class Table: Symbol()
+
+@OnRules([PlSqlParser.Create_viewContext::class])
+@SubRules([TableViewName::class])
+class View: Symbol()
+
+// Root Document
+@SubRules([Procedure::class, Function::class, Package::class, Table::class, View::class])
 class Document: SynItem() {
 	private var fileName = ""
 

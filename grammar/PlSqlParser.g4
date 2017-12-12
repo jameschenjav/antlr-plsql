@@ -31,6 +31,7 @@ main
     | create_procedure_body
     | create_package
     | create_package_body
+	| create_table
     | create_trigger
     | create_view
     ;
