@@ -197,10 +197,23 @@ abstract class Symbol: HolderItem() {
 @OnRules([PlSqlParser.Query_blockContext::class])
 class QueryBlock: HolderItem()
 
+// Statements
+abstract class BaseExpression: HolderItem() {
+	override fun parse(ctx: ParserRuleContext) {
+		updateTokenInfo(ctx)
+		startParse(ctx)
+	}
+
+	override fun addDataToMap(dataMap: MutableMap<String, Any?>) {
+		super.addDataToMap(dataMap)
+		addItemsToMap(dataMap)
+	}
+}
+
 // Statement Elements
 @OnRules([PlSqlParser.ExpressionContext::class])
 @SubRules([QueryBlock::class, Concatenation::class])
-class Expression: SynItem()
+class Expression: BaseExpression()
 
 @OnRules([PlSqlParser.Id_expressionContext::class])
 class IdExpression: Identifier()
@@ -248,17 +261,7 @@ class KeepClause: HolderItem()
 class Argument: SynItem()
 
 // Statements
-abstract class BaseStatement: HolderItem() {
-	override fun parse(ctx: ParserRuleContext) {
-		updateTokenInfo(ctx)
-		startParse(ctx)
-	}
-
-	override fun addDataToMap(dataMap: MutableMap<String, Any?>) {
-		super.addDataToMap(dataMap)
-		addItemsToMap(dataMap)
-	}
-}
+abstract class BaseStatement: BaseExpression()
 
 @OnRules([PlSqlParser.Assignment_statementContext::class])
 @SubRules([BindVariable::class, GeneralElementPart::class, Expression::class])
