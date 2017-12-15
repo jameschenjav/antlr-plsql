@@ -338,14 +338,14 @@ class Parameter: Symbol()
 
 @OnRules([PlSqlParser.ParametersContext::class])
 @SubRules([Parameter::class])
-class ParametersBlock: SynItem()
+class ParametersBlock: BaseStatement()
 
 @OnRules([PlSqlParser.Invoker_rights_clauseContext::class])
 class InvokerRights: SynItem()
 
 @OnRules([PlSqlParser.Seq_of_declare_specsContext::class])
 @SubRules([VariableDecl::class, CursorDecl::class, TypeDecl::class, ExceptionDecl::class, Procedure::class, Function::class])
-class DeclarationsBlock: SynItem()
+class DeclarationsBlock: BaseStatement()
 
 // Body
 @OnRules([PlSqlParser.Exception_nameContext::class])
@@ -372,15 +372,15 @@ class StatementsBlock: SynItem()
 
 @OnRules([PlSqlParser.Exception_handlerContext::class])
 @SubRules([ExceptionName::class, StatementsBlock::class])
-class ExceptionCase: SynItem()
+class ExceptionCase: BaseStatement()
 
 @OnRules([PlSqlParser.ExceptionsContext::class])
 @SubRules([ExceptionCase::class])
-class ExceptionBlock: SynItem()
+class ExceptionBlock: BaseStatement()
 
 @OnRules([PlSqlParser.BodyContext::class])
 @SubRules([StatementsBlock::class, ExceptionBlock::class])
-class Body: SynItem()
+class Body: BaseStatement()
 
 // Procedure/Function
 @OnRules([PlSqlParser.Procedure_bodyContext::class, PlSqlParser.Create_procedure_bodyContext::class])
