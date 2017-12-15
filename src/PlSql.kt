@@ -18,6 +18,8 @@ class PlSql: PlSqlParserBaseListener() {
 
 	fun parse(fileName: String): PlSql {
 		val file = File(fileName)
+		System.err.println("Parsing:\t${file.name}")
+
 		val bytes = file.readBytes()
 		val stream = ByteArrayInputStream(bytes)
 		val lexer = PlSqlLexer(CharStreams.fromStream(stream))
@@ -37,6 +39,7 @@ class PlSql: PlSqlParserBaseListener() {
 			code = bytes.toString(Charset.forName("UTF-8"))
 		}
 
+		System.err.println("Finished:\t${file.name}")
 		return this
 	}
 
@@ -67,7 +70,6 @@ class PlSql: PlSqlParserBaseListener() {
     |	-t	Tokens:	Generate JSON with Tokens
     |	-c	Code:	Generate JSON with Code
 		""".trimMargin()
-
 
 		@JvmStatic
 		fun main(args: Array<String>) {

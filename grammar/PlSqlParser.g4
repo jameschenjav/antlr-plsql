@@ -102,7 +102,7 @@ alter_function
     ;
 
 create_function_body
-    : CREATE (OR REPLACE)? FUNCTION regular_name ('(' (','? parameter)+ ')')?
+    : CREATE (OR REPLACE)? FUNCTION regular_name parameters
       RETURN type_spec (invoker_rights_clause | parallel_enable_clause | result_cache_clause | DETERMINISTIC)*
       ((PIPELINED? (IS | AS) (DECLARE? seq_of_declare_specs? body | call_spec)) | (PIPELINED | AGGREGATE) USING regular_name) ';'
     ;
