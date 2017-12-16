@@ -247,7 +247,7 @@ class LabelDecl: SynItem()
 @OnRules([PlSqlParser.Cursor_loop_paramContext::class])
 @SubRules([Identifier::class, Concatenation::class,
 	IdExpression::class, GeneralElementPart::class, BindVariable::class, Expression::class, SelectStatement::class])
-class CursorLoopParam: SynItem()
+class CursorLoopParam: BaseExpression()
 
 // Func call
 @OnRules([PlSqlParser.Routine_nameContext::class])
@@ -302,8 +302,16 @@ class RaiseStatement: BaseStatement()
 @SubRules([Expression::class])
 class ReturnStatement: BaseStatement()
 
+@OnRules([PlSqlParser.Case_when_partContext::class])
+@SubRules([Expression::class, StatementsBlock::class])
+class CaseWhenPart: BaseExpression()
+
+@OnRules([PlSqlParser.Case_else_partContext::class])
+@SubRules([Expression::class, StatementsBlock::class])
+class CaseElsePart: BaseExpression()
+
 @OnRules([PlSqlParser.Case_statementContext::class])
-@SubRules([Expression::class, StatementsBlock::class, IdExpression::class])
+@SubRules([Expression::class, CaseWhenPart::class, CaseElsePart::class, IdExpression::class])
 class CaseStatement: BaseStatement()
 
 @OnRules([PlSqlParser.Sql_statementContext::class])
@@ -369,7 +377,8 @@ class ExceptionName: Identifier()
 	CaseStatement::class,
 	SqlStatement::class,
 	FuncCallStatement::class,
-	PipRowStatement::class
+	PipRowStatement::class,
+	Body::class
 ])
 class StatementsBlock: SynItem()
 

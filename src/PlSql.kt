@@ -9,6 +9,7 @@ import java.nio.charset.Charset
 
 class PlSql: PlSqlParserBaseListener() {
 	val document by lazy { Document() }
+	var lineCount = 0
 	var tokenList = listOf<Token>()
 	var code = ""
 
@@ -39,7 +40,9 @@ class PlSql: PlSqlParserBaseListener() {
 			code = bytes.toString(Charset.forName("UTF-8"))
 		}
 
-		System.err.println("Finished:\t${file.name}")
+		lineCount = bytes.count { it.toChar() == '\n' } + 1
+
+		System.err.println("Finished:\t${file.name} ($lineCount lines)")
 		return this
 	}
 
@@ -95,6 +98,7 @@ class PlSql: PlSqlParserBaseListener() {
 				"symbol_types" to SynItem.Global.symbolTypes,
 				"files" to docs.map {
 					val r = it.document.toDataMap()
+					r["line_count"] = it.lineCount
 					if (Flags.t) {
 						r["tokens"] = it.tokenList.map { createTokenData(it) }
 					}

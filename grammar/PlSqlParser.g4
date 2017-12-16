@@ -2042,25 +2042,12 @@ TODO scope    {
     boolean isStatement;
 }
 @init    {$case_statement::isStatement = $isStatementParameter;}*/
-    : searched_case_statement
-    | simple_case_statement
+    : label_name? ck1=CASE expression? case_when_part+ case_else_part? END CASE? label_name?
     ;
 
 // CASE
 
-simple_case_statement
-    : label_name? ck1=CASE expression simple_case_when_part+  case_else_part? END CASE? label_name?
-    ;
-
-simple_case_when_part
-    : WHEN expression THEN (/*TODO{$case_statement::isStatement}?*/ seq_of_statements | expression)
-    ;
-
-searched_case_statement
-    : label_name? ck1=CASE searched_case_when_part+ case_else_part? END CASE? label_name?
-    ;
-
-searched_case_when_part
+case_when_part
     : WHEN expression THEN (/*TODO{$case_statement::isStatement}?*/ seq_of_statements | expression)
     ;
 
