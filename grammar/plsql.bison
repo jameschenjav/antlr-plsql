@@ -413,8 +413,18 @@ FS	[df]
 
 %%
 
+main
+	: ('SET' 'DEFINE' ('ON' | 'OFF'))? creations '/'? 'EOF'
+	| plsql_block ';'? '/'? 'EOF'
+	;
+
+creations
+	: create_procedure
+	| create_function
+	;
+
 plsql_block
-	: declare_label* 'DECLARE' declare_secion body
+	: declare_label* ('DECLARE' declare_secion)? body
 	;
 
 declare_secion
@@ -501,6 +511,10 @@ pragma
 	| serially_resuable_pragma
 	;
 
+autonomous_transaction_pragma
+	: 'PRAGMA' 'AUTONOMOUS_TRANSACTION' ';'
+	;
+
 body
 	: 'BEGIN' statement ( statement | pragma )* ( 'EXCEPTION' exception_handler* )? 'END' identifier? ';'
 	;
@@ -531,6 +545,10 @@ statement
 		sql_statement )
 	;
 
+assignment_statement
+	: ref_identifier ( '(' expression ')' )? ':=' expression ';'
+	;
+
 sql_statement
 	: commit_statement
 	| delete_statement
@@ -541,6 +559,10 @@ sql_statement
 	| select_statement
 	| set_transaction_statement
 	| update_statement
+	;
+
+commit_statement
+	: 'COMMIT'
 	;
 
 close_statement
@@ -889,155 +911,45 @@ serially_resuable_pragma
 	: PRAGMA 'SERIALLY_RESUABLE' ';'
 	;
 
-main
-	: ('SET' 'DEFINE' ('ON' | 'OFF'))? creations '/'? 'EOF'
-	| anonymous_block ';'? '/'? 'EOF'
-	;
-
-creations
-	: create_procedure
-	| create_function
-	;
-
-create_procedure
-	: create_or_replace 'PROCEDURE' identifier parameters?
-		invoker_rights_clause? body_common ';'?
+compiler_parameters_clause
+	: identifier '=' expression
 	;
 
 create_function
-	: create_or_replace 'FUNCTION' identifier parameters?
-		'RETURN' type_regular invoker_rights_clause? body_common ';'?
+	: create_or_replace 'FUNCTION' identifier_plus
+		( '(' parameter_declaration ( ',' parameter_declaration )* ')' )?
+		'RETURN' element_type
+		( invoker_rights_clause | 'DETERMINISTIC' | parallel_enable_clause | result_cache_clause )*
+		(
+			( 'AGGREGATE' | 'PIPELINED' ) USING identifier_plus |
+			'PIPELINED'? is declare_secion? body
+		)
 	;
 
-body_procedure
-	: 'PROCEDURE' identifier parameters? body_common ';'
+create_package
+	: create_or_replace 'PACKAGE' identifier_plus invoker_rights_clause? is item_list_1 'END' identifier? ';'
 	;
 
-body_function
-	: 'FUNCTION' identifier parameters? 'RETURN' type_regular body_common ';'
+create_package_body
+	: create_or_replace 'PACKAGE' 'BODY' identifier_plus
+		is declare_secion? body? 'END' identifier? ';'
 	;
 
-body_common
-	: is anonymous_block identifier?
+create_procedure
+	: create_or_replace 'PROCEDURE' identifier_plus
+		( '(' parameter_declaration ( ',' parameter_declaration )* ')' )?
+		invoker_rights_clause? is (
+			declare_secion? body |
+			'EXTERNAL'
+		)
 	;
 
-anonymous_block
-	: declarations? 'BEGIN' statements exceptions 'END'
-	;
-
-parameters
-	: '(' (parameter (',' parameter)*)? ')'
-	;
-
-parameter
-	: identifier ('IN' | 'OUT' | 'INOUT' | 'NOCOPY')* type_regular default_value?
-	;
-
-declarations
-	: 'DECLARE'? declaration+
-	;
-
-declaration
-	: declare_cursor
-	| declare_exception
-	| declare_function
-	| declare_procedure
-	| declare_pragma
-	| declare_subtype
-	| declare_type
-	| declare_variable
-	| body_function
-	| body_procedure
-	;
-
-declare_function
-	: 'FUNCTION' identifier parameters? 'RETURN' type_regular ';'
-	;
-
-declare_procedure
-	: 'PROCEDURE' identifier parameters? ';'
-	;
-
-declare_cursor
-	: 'CURSOR' identifier parameters? ('RETURN' type_all)? is statement_select ';'
-	;
-
-declare_exception
-	: identifier 'EXCEPTION' ';'
-	;
-
-declare_pragma
-	: 'PRAGMA' ( 'AUTONOMOUS_TRANSACTION' | ( 'EXCEPTION_INIT' '(' identifier ',' expression ')' ) )
-	;
-
-declare_subtype
-	: 'SUBTYPE' identifier is type_all ('RANGE' expression '..' expression )? not_null? ';'
-	;
-
-declare_type
-	: 'TYPE' identifier is type_defination ';'
-	;
-
-type_defination
-	: 'TABLE' 'OF' type_all ('INDEX' 'BY' identifier)? not_null?
-	| ('VARRAY' | 'VARYING' 'ARRAY') '(' expression ')' 'OF' type_all not_null?
-	| 'RECORD' '(' record_field ( ',' record_field )* ')'
-	| 'REF' 'CURSOR' ('RETURN' type_all)?
-	;
-
-record_field
-	: identifier type_all not_null? default_value?
-	;
-
-declare_variable
-	: identifier 'CONSTANT'? type_all not_null? default_value? ';'
-	;
-
-declare_label
-	: '<<' identifier '>>'
-	;
-
-statements
-	: (statement | declare_label)+
-	;
-
-exceptions
-	: statement
-	;
-
-statement
-	: statement_assign
-	;
-
-statement_assign
-	: ref_identifier ( '(' expression ')' )? ':=' expression ';'
-	;
-
-expression
-	: 'number'
-	| 'string'
-	| 'bool'
-	| identifier
-	;
-
-basic_expression
-	: expression_relational
-	| expression_char
-	| expression_date
-	| expression_numeric
-	| expression_simple_case
-	| expression_searched_case
-	;
-
-expression_relational
-	: 'bool'
-	| ref_identifier ('%FOUND' | '%ISOPEN' | '%NOTFOUND')
-	| expression_relational
-
-type_all
-	: type_regular
-	| identifier '%ROWTYPE'
-	| identifier_plus '%TYPE'
+parallel_enable_clause
+	: '(' 'PARTITION' identifier 'BY' (
+		'ANY' |
+		( 'HASH' | 'RANGE' ) '(' column, ( ',' column )* ')'
+		) ')'
+		( 'ORDER' | 'CLUSTER' ) expression 'BY' '(' column, ( ',' column )* ')'
 	;
 
 type_regular
@@ -1052,7 +964,7 @@ default_value
 	: (':=' | 'DEFAULT') expression
 	;
 
-create_or_replace	: 'CREATE' ('OR' 'REPLACE')? ;
+create_or_replace	: 'CREATE' ( 'OR' 'REPLACE' )? ;
 
 is	: ('IS' | 'AS') ;
 
