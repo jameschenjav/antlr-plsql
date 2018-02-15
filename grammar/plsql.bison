@@ -14,6 +14,24 @@ FS	[df]
 '--'[^\n]*				/* skip comments */
 \s+		/* skip whitespace */
 
+':'{BID_BEG}{ID_BODY}*	return 'bound_id';
+'"'[^"]+'"'				return 'quoted_id';
+
+[0-9]+'.'?{E}?FS?			return 'number';
+[0-9]*'.'[0-9]+?{E}?FS?		return 'number';
+"'"(''|[^'])*"'"	return 'string';
+"q'!".*"!'"			return 'string';
+"q'[".*"]'"			return 'string';
+"q'{".*"}'"			return 'string';
+"q'(".*")'"			return 'string';
+"q'<".*">'"			return 'string';
+
+'%TYPE'			return '%TYPE';
+'%ROWTYPE'		return '%ROWTYPE';
+'%FOUND'		return '%FOUND';
+'%ISOPEN'		return '%ISOPEN';
+'%NOTFOUND'		return '%NOTFOUND';
+
 'ALL'			return 'ALL';
 'ALTER'			return 'ALTER';
 'AND'			return 'AND';
@@ -346,20 +364,25 @@ FS	[df]
 'YEAR'				return 'YEAR';
 'ZONE'				return 'ZONE';
 
+'CURRENT_USER'	return 'CURRENT_USER';
+'INOUT'			return 'INOUT';
 'OFF'			return 'OFF';
 'REPLACE'		return 'REPLACE';
-'CURRENT_USER'	return 'REPLACE';
+'AUTONOMOUS_TRANSACTION'		return 'AUTONOMOUS_TRANSACTION';
+'EXCEPTION_INIT'		return 'EXCEPTION_INIT';
+
+'TRUE'		return 'bool';
+'FALSE'		return 'bool';
+
+{ID_BEG}{ID_BODY}*		return 'identifier';
 
 '+'		return '+';
-'%'		return '%';
-'''		return ''';
 '.'		return '.';
 '/'		return '/';
 '('		return '(';
 ')'		return ')';
 ','		return ',';
 '*'		return '*';
-'"'		return '"';
 '='		return '=';
 '<'		return '<';
 '>'		return '>';
@@ -373,8 +396,6 @@ FS	[df]
 '**'	return '**';
 '<<'	return '<<';
 '>>'	return '>>';
-'/*'	return '/*';
-'*/'	return '*/';
 '..'	return '..';
 '<>'	return '<>';
 '!='	return '!=';
@@ -382,23 +403,6 @@ FS	[df]
 '^='	return '^=';
 '<='	return '<=';
 '>='	return '>=';
-'--'	return '--';
-
-':'{BID_BEG}{ID_BODY}*	return 'bound_id';
-{ID_BEG}{ID_BODY}*		return 'identifier';
-'"'[^"]+'"'				return 'quoted_id';
-
-[0-9]+'.'?{E}?FS?			return 'number';
-[0-9]*'.'[0-9]+?{E}?FS?		return 'number';
-"'"(''|[^'])*"'"	return 'string';
-"q'!".*"!'"			return 'string';
-"q'[".*"]'"			return 'string';
-"q'{".*"}'"			return 'string';
-"q'(".*")'"			return 'string';
-"q'<".*">'"			return 'string';
-
-'TRUE'		return 'bool';
-'FALSE'		return 'bool';
 
 <<EOF>>		return 'EOF';
 .			return 'UNKNOWN';
@@ -409,39 +413,650 @@ FS	[df]
 
 %%
 
+plsql_block
+	: declare_label* 'DECLARE' declare_secion body
+	;
+
+declare_secion
+	: item_list_1 item_list_2?
+	| item_list_2
+	;
+
+item_list_1_subset
+	: type_definition
+	| item_declaration
+	| function_declaration
+	| procedure_declaration
+	;
+
+item_list_1
+	: item_list_1_subset ( item_list_1_subset | pragma )*
+	;
+
+item_list_2_subset
+	: function_declaration
+	| function_definition
+	| procedure_declaration
+	| procedure_definition
+	;
+
+item_list_2
+	: item_list_2_subset ( item_list_2_subset | pragma )*
+	;
+
+type_definition
+	: record_type_definition
+	| ref_cursor_type_definition
+	| subtype_definition
+	| collection_type_definition
+	;
+
+collection_type_definition
+	: 'TYPE' identifier is ( table_type_def | varray_type_def ) ';'
+	;
+
+table_type_def
+	: 'TABLE' 'OF' element_type not_null? ( 'INDEX' 'BY' type_regular )?
+	;
+
+collection_variable_dec
+	: identifier element_type ';'
+	;
+
+varray_type_def
+	: ( 'VARRAY' | 'VARYING' 'ARRAY' ) '(' expression ')' OF element_type not_null?
+	;
+
+subtype_definition
+	: 'SUBTYPE' identifier is element_type ('RANGE' expression '..' expression )? not_null?
+	;
+
+element_type
+	: identifier_plus ('%ROWTYPE' | '%TYPE')
+	| 'REF'? identifier_plus
+	| type_regular
+	;
+
+item_declaration
+	: collection_variable_dec
+	| constant_declaration
+	| cursor_declaration
+	| cursor_variable_declaration
+	| exception_declaration
+	| object_declaration
+	| object_ref_declaration
+	| record_type_declaration
+	| variable_declaration
+	;
+
+variable_declaration
+	: identifier element_type not_null? default_value? ';'
+	;
+
+pragma
+	: autonomous_transaction_pragma
+	| exception_init_pragma
+	| inline_pragma
+	| restrict_references_pragma
+	| serially_resuable_pragma
+	;
+
+body
+	: 'BEGIN' statement ( statement | pragma )* ( 'EXCEPTION' exception_handler* )? 'END' identifier? ';'
+	;
+
+statement
+	: declare_label* (
+		assignment_statement |
+		close_statement |
+		continue_statement |
+		execute_immediate_statement |
+		exit_statement |
+		fetch_statement |
+		forall_statement |
+		goto_statement |
+		if_statement |
+		basic_loop_statement |
+		while_loop_statement |
+		for_loop_statement |
+		cursor_for_loop_statement |
+		null_statement |
+		open_statement |
+		open_for_statement |
+		plsql_block |
+		raise_statement |
+		return_statement |
+		searched_case_statement |
+		simple_case_statement |
+		sql_statement )
+	;
+
+sql_statement
+	: commit_statement
+	| delete_statement
+	| insert_statement
+	| lock_table_statement
+	| rollback_statement
+	| savepoint_statement
+	| select_statement
+	| set_transaction_statement
+	| update_statement
+	;
+
+close_statement
+	: 'CLOSE' ref_identifier ';'
+	;
+
+searched_case_statement
+	: identifier? 'CASE'
+		('WHEN' boolean_expression 'THEN' statement)+
+		('ELSE' statement+)?
+		'END' 'CASE' identifier? ';'
+	;
+
+simple_case_statement
+	: identifier? 'CASE' expression
+		('WHEN' expression 'THEN' statement)+
+		('ELSE' statement+)?
+		'END' 'CASE' identifier? ';'
+	;
+
+collection_method_call
+	: collection_name '.' (
+		'COUNT' |
+		'DELETE' ( expression (',' expression)* )? |
+		'EXISTS' '(' expression ')' |
+		'EXTEND' ( expression (',' expression)* )? |
+		'FIRST' |
+		'LAST' |
+		'LIMIT' |
+		'NEXT' '(' expression ')' |
+		'PRIOR' '(' expression ')' |
+		'TRIM' ( '(' expression ')' )? )
+	;
+
+constant_declaration
+	: identifier 'CONSTANT' element_type not_null? default_value ';'
+	;
+
+continue_statement
+	: 'CONTINUE' identifier? ('WHEN' expression)? ';'
+	;
+
+cursor_attribute
+	: ref_identifier ( '%FOUND' | '%ISOPEN' | '%NOTFOUND' | '%ROWCOUNT' )
+	;
+
+ref_cursor_type_definition
+	: 'TYPE' identifier is 'REF' 'CURSOR' ( 'RETURN' element_type )? ';'
+	;
+
+exception_init_pragma
+	: 'PRAGMA' 'EXCEPTION_INIT' '(' identifier ',' expression ')' ';'
+	;
+
+exception_declaration
+	: 'WHEN' ( (identifier ('OR' identifier)*) | 'OTHERS' ) 'THEN' statement+ ';'
+	;
+
+exception_handler
+	: identifier 'EXCEPTION' ';'
+	;
+
+execute_immediate_statement
+	: 'EXECUTE' 'IMMEDIATE' sql_statement (
+		into_clause using_clause? |
+		bulk_collect_into_clause using_clause? |
+		using_clause dynamic_returning_clause? |
+		dynamic_returning_clause )?
+	;
+
+into_clause
+	: 'INTO' ref_identifier ( ',' ref_identifier )*
+	;
+
+bulk_collect_into_clause
+	: 'BULK' 'COLLECT' 'INTO' ref_identifier ( ',' ref_identifier )*
+	;
+
+fetch_statement
+	: 'FETCH' ref_identifier ( into_clause | ( bulk_collect_into_clause ( 'LIMIT' expression )? ) ) ';'
+	;
+
+forall_statement
+	: 'FORALL' identifier 'IN' bounds_clause sql_statement ( 'SAVE' 'EXCEPTIONS' ) ';'
+	;
+
+bounds_clause
+	: expression '..' expression
+	| 'INDICES' 'OF' ref_identifier ( 'BETWEEN' expression 'AND' expression )?
+	| 'VALUES' 'OF' ref_identifier
+	;
+
+using_clause
+	: 'USING' in_out ref_identifier ( ',' in_out ref_identifier )*
+	;
+
+in_out
+	: 'IN'
+	| 'OUT'
+	| 'INOUT'
+	| 'IN' 'OUT'
+	;
+
+exit_statement
+	: 'EXIT' identifier? ( 'WHEN' expression )? ';'
+	;
+
+cursor_declaration
+	: 'CURSOR' identifier ( cursor_parameter_declaration ( ',' cursor_parameter_declaration )* )?
+		( 'RETURN' element_type )? is select_statement ';'
+	;
+
+cursor_spec
+	: 'CURSOR' identifier ( cursor_parameter_declaration ( ',' cursor_parameter_declaration )* )?
+		'RETURN' element_type
+	;
+
+cursor_body
+	: 'CURSOR' identifier ( cursor_parameter_declaration ( ',' cursor_parameter_declaration )* )?
+		'RETURN' element_type is select_statement ';'
+	;
+
+cursor_parameter_declaration
+	: identifier 'IN'? element_type default_value?
+
+expression
+	: or_expression
+	;
+
+or_expression
+	: and_expression
+	| or_expression 'OR' and_expression
+	;
+
+and_expression
+	: rational_expression
+	| and_expression 'AND' rational_expression
+	;
+
+rational_expression
+	: additive_expression (
+		( 'IS' 'NOT'? 'NULL' ) |
+		'NOT'? (
+			('LIKE' expression) |
+			('BETWEEN' expression 'AND' expression) |
+			('IN' '(' expression ( ',' expression)* ')' )
+		)?
+	| rational_expression ( '=' | '>' | '<' | '<>' | '!=' | '>=' | '<=' | '~=' | '^=' ) additive_expression
+	| 'NOT' rational_expression
+	;
+
+additive_expression
+	: string_contactive_expresion
+	| numeric_additive_expression
+	;
+
+string_contactive_expresion
+	: expression_basic
+	: string_contactive_expresion '||' expression_basic
+	;
+
+additive_expression
+	: multiplicative_expression
+	| additive_expression ('+' | '-') multiplicative_expression
+	;
+
+multiplicative_expression
+	: exponent_expression
+	| multiplicative_expression ('*' | '/') exponent_expression
+	;
+
+exponent_expression
+	: unary_expression
+	| exponent_expression '**' unary_expression
+	;
+
+unary_expression
+	: expression_element
+	| ( '+' | '-' ) unary_expression
+	;
+
+expression_basic
+	: ref_identifier
+	| function_call
+	| literal
+	| case_expression
+	| '(' expression ')'
+	;
+
+sql_cursor
+	| sql ( '%FOUND' | '%ISOPEN' | '%NOTFOUND' | '%ROWCOUNT' |
+		( '%BULK_ROWCOUNT' '(' expression ')' ) |
+		( '%BULK_EXCEPTIONS' '(' expression ')' '.' ( 'ERROR_INDEX' | 'ERROR_CODE' ) ) )
+	;
+
+expression_element
+	: ref_identifier ( '%FOUND' | '%ISOPEN' | '%NOTFOUND' | '%ROWCOUNT' )?
+	| sql_cursor
+	| expression_basic
+	;
+
+case_expression
+	: 'CASE' expression?
+		('WHEN' expression 'THEN' expression)+
+		'ELSE' expression
+		'END' 'CASE'
+	;
+
+function_declaration
+	: function_heading ( 'DETERMINISTIC' | 'PIPELINED' | 'RESULT_CACHE' )* ';'
+	;
+
+function_heading
+	: 'FUNCTION' identifier
+		( '(' parameter_declaration ( ',' parameter_declaration )* ')' )?
+		'RETURN' element_type
+	;
+
+result_cache_clause
+	: 'RESULT_CACHE' ( 'RELIES_ON' '(' identifier_plus (',' identifier_plus)* ')' )?
+	;
+
+function_definition
+	: function_heading ( 'DETERMINISTIC' | 'PIPELINED' | result_cache_clause )*
+		is declare_secion? body
+	;
+
+label_declaration
+	: '<<' identifier '>>'
+	;
+
+if_statement
+	: 'IF' expression 'THEN' statement+
+		( 'ELSIF' expression 'THEN' statement+ )*
+		( 'ELSE' statement+ )?
+		'END' 'IF' ';'
+	;
+
+inline_pragma
+	: 'PRAGMA' 'INLINE' '(' identifier ',' 'string' ')' ';'
+	;
+
+goto_statement
+	: 'GOTO' identifier ';'
+	;
+
+loop_statement_main
+	: 'LOOP' statement+ 'END' 'LOOP' identifier?
+	;
+
+basic_loop_statement
+	: label_declaration? loop_statement_main ';'
+	;
+
+while_loop_statement
+	: label_declaration? 'WHILE' expression loop_statement_main ';'
+	;
+
+for_loop_statement
+	: label_declaration? 'FOR' identifier 'IN' 'REVERSE'? expression '..' expression loop_statement_main ';'
+	;
+
+cursor_for_loop_statement
+	: label_declaration? 'FOR' identifier 'IN' '(' select_statement ')' loop_statement_main ';'
+	;
+
+null_statement
+	: 'NULL' ';'
+	;
+
+open_statement
+	: 'OPEN' ref_identifier ( '(' expression ( ',' expression )* ')' )? ';'
+	;
+
+open_for_statement
+	: 'OPEN' ref_identifier 'FOR' ( select_statement | expression ) using_clause? ';'
+	;
+
+parameter_declaration
+	: identifier ( 'IN' | ( 'OUT' | 'IN' 'OUT' | 'INOUT' ) 'NOCOPY'? ) element_type default_value?
+	;
+
+procedure_declaration
+	: procedure_heading
+	;
+
+procedure_heading
+	: 'PROCEDURE' identifier ( '(' parameter_declaration ( ',' parameter_declaration )* ')' )?
+	;
+
+procedure_definition
+	: procedure_heading is declare_secion? body
+	;
+
+raise_statement
+	: 'RAISE' ref_identifier ';'
+	;
+
+record_type_definition
+	: 'TYPE' identifier 'IS' 'RECORD' '(' record_field_declaration ( ',' record_field_declaration )* ')' ';'
+	;
+
+record_field_declaration
+	: identifier element_type not_null? default_value?
+	;
+
+record_type_declaration
+	: identifier element_type
+	;
+
+restrict_references_pragma
+	: 'PRAGMA' 'RESTRICT' 'REFERENCES' '('
+		( identifier | 'DEFAULT' ) ',' restrict_value (',' restrict_value)*
+		')'
+	;
+
+restrict_value
+	: ( 'RNDS' | 'WNDS' | 'RNPS' | 'WNPS' | 'TRUST' )
+	;
+
+return_statement
+	: 'RETURN' expression ';'
+	;
+
+returning_clause
+	: ( 'RETURN' | 'RETURNING' ) (
+		( ( single_row_expresion ( ',' single_row_expresion )* )? into_clause ) |
+		( ( multiple_row_expresion ( ',' multiple_row_expresion )* )? bulk_collect_into_clause ) )
+	;
+
+select_into_statement
+	: SELECT ( DISTINCT | UNIQUE | ALL )? ( '*' | select_item ( ',' select_item )* )
+		( BULK COLLECT )? INTO ref_identifier ( ',' ref_identifier )*
+		FROM from_item ( ',' from_item )* rest ';'
+	;
+
+select_item
+	: expression identifier?
+	;
+
+from_item
+	: ( ref_identifier | 'THE'? '(' subquery ')' ) ( 'AS'? identifier )?
+	;
+
+serially_resuable_pragma
+	: PRAGMA 'SERIALLY_RESUABLE' ';'
+	;
+
 main
-	: ('SET' 'DEFINE' ('ON' | 'OFF'))? main_structure ('/')? 'EOF'
+	: ('SET' 'DEFINE' ('ON' | 'OFF'))? creations '/'? 'EOF'
+	| anonymous_block ';'? '/'? 'EOF'
 	;
 
-main_structure
+creations
+	: create_procedure
+	| create_function
 	;
 
-main_create_procedure
+create_procedure
 	: create_or_replace 'PROCEDURE' identifier parameters?
-		invoker_rights_clause? 'IS'
-		declaration?
+		invoker_rights_clause? body_common ';'?
 	;
 
-main_create_function
-	: create_or_replace 'FUNCTION' identifier parameters? 'RETURN' simple_type
-		invoker_rights_clause? 'IS'
-		declaration?
+create_function
+	: create_or_replace 'FUNCTION' identifier parameters?
+		'RETURN' type_regular invoker_rights_clause? body_common ';'?
+	;
+
+body_procedure
+	: 'PROCEDURE' identifier parameters? body_common ';'
+	;
+
+body_function
+	: 'FUNCTION' identifier parameters? 'RETURN' type_regular body_common ';'
+	;
+
+body_common
+	: is anonymous_block identifier?
+	;
+
+anonymous_block
+	: declarations? 'BEGIN' statements exceptions 'END'
+	;
+
+parameters
+	: '(' (parameter (',' parameter)*)? ')'
+	;
+
+parameter
+	: identifier ('IN' | 'OUT' | 'INOUT' | 'NOCOPY')* type_regular default_value?
+	;
+
+declarations
+	: 'DECLARE'? declaration+
 	;
 
 declaration
-	: 'DECLARE'?
+	: declare_cursor
+	| declare_exception
+	| declare_function
+	| declare_procedure
+	| declare_pragma
+	| declare_subtype
+	| declare_type
+	| declare_variable
+	| body_function
+	| body_procedure
 	;
 
-simple_type
+declare_function
+	: 'FUNCTION' identifier parameters? 'RETURN' type_regular ';'
+	;
+
+declare_procedure
+	: 'PROCEDURE' identifier parameters? ';'
+	;
+
+declare_cursor
+	: 'CURSOR' identifier parameters? ('RETURN' type_all)? is statement_select ';'
+	;
+
+declare_exception
+	: identifier 'EXCEPTION' ';'
+	;
+
+declare_pragma
+	: 'PRAGMA' ( 'AUTONOMOUS_TRANSACTION' | ( 'EXCEPTION_INIT' '(' identifier ',' expression ')' ) )
+	;
+
+declare_subtype
+	: 'SUBTYPE' identifier is type_all ('RANGE' expression '..' expression )? not_null? ';'
+	;
+
+declare_type
+	: 'TYPE' identifier is type_defination ';'
+	;
+
+type_defination
+	: 'TABLE' 'OF' type_all ('INDEX' 'BY' identifier)? not_null?
+	| ('VARRAY' | 'VARYING' 'ARRAY') '(' expression ')' 'OF' type_all not_null?
+	| 'RECORD' '(' record_field ( ',' record_field )* ')'
+	| 'REF' 'CURSOR' ('RETURN' type_all)?
+	;
+
+record_field
+	: identifier type_all not_null? default_value?
+	;
+
+declare_variable
+	: identifier 'CONSTANT'? type_all not_null? default_value? ';'
+	;
+
+declare_label
+	: '<<' identifier '>>'
+	;
+
+statements
+	: (statement | declare_label)+
+	;
+
+exceptions
+	: statement
+	;
+
+statement
+	: statement_assign
+	;
+
+statement_assign
+	: ref_identifier ( '(' expression ')' )? ':=' expression ';'
+	;
+
+expression
+	: 'number'
+	| 'string'
+	| 'bool'
+	| identifier
+	;
+
+basic_expression
+	: expression_relational
+	| expression_char
+	| expression_date
+	| expression_numeric
+	| expression_simple_case
+	| expression_searched_case
+	;
+
+expression_relational
+	: 'bool'
+	| ref_identifier ('%FOUND' | '%ISOPEN' | '%NOTFOUND')
+	| expression_relational
+
+type_all
+	: type_regular
+	| identifier '%ROWTYPE'
+	| identifier_plus '%TYPE'
+	;
+
+type_regular
 	: identifier ( '(' 'number' ('BYTE' | 'CHAR' | ',' 'number')? ')' )?
 	;
 
 invoker_rights_clause
-    : 'AUTHID' ('CURRENT_USER' | identifier)
-    ;
+	: 'AUTHID' ('CURRENT_USER' | identifier)
+	;
 
-create_or_replace
-	| 'CREATE' ('OR' 'REPLACE')?
+default_value
+	: (':=' | 'DEFAULT') expression
+	;
+
+create_or_replace	: 'CREATE' ('OR' 'REPLACE')? ;
+
+is	: ('IS' | 'AS') ;
+
+not_null	: ('NOT' 'NULL') ;
 
 identifier
 	:	'identifier'
@@ -450,15 +1065,20 @@ identifier
 	|	semantic
 	;
 
+identifier_plus
+	:	identifier (('.' | '@') identifier)*
+	;
+
 ref_identifier
-	:	identifier
+	:	identifier_plus
 	|	'bound_id'
 	;
 
 semantic
 	:	'OFF'
-	|	'REPLACE'
 	|	'CURRENT_USER'
+	|	'INOUT'
+	|	'REPLACE'
 	;
 
 literal
