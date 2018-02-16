@@ -2988,6 +2988,7 @@ regular_id
     | OID
     | OLD
     //| ON
+	| ONLINE
     | ONLY
     | OPEN
     | OPERATOR
@@ -3048,6 +3049,7 @@ regular_id
     | REVERSE
     //| REVOKE
     | RIGHT
+    | ROLES
     | ROLLBACK
     | ROLLUP
     | ROW
