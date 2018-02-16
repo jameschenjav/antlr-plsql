@@ -61,12 +61,17 @@ class PlSql: PlSqlParserBaseListener() {
 			val v: String? = null
 		)
 
+		private fun convertContent(n: RuleNode): String {
+			val s = n.javaClass.simpleName
+			return s.substring(0, s.length - 7).toLowerCase()
+		}
+
 		private fun walk(t: ParseTree): Jo {
 			if (t is ErrorNode) {
-				return Jo("Error", v = t.toString())
+				return Jo("ERR", v = t.toString())
 			}
 			if (t is TerminalNode) {
-				return Jo("string", v = t.toString())
+				return Jo("Str", v = t.toString())
 			}
 
 			val node = t as RuleNode
@@ -77,7 +82,7 @@ class PlSql: PlSqlParserBaseListener() {
 				nodes.add(walk(node.getChild(i)))
 				i += 1
 			}
-			return Jo(t.javaClass.simpleName, nodes.toList())
+			return Jo(convertContent(t), nodes.toList())
 		}
 
 		private fun createTokenData(token: Token) = TokenData(
