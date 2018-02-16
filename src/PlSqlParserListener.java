@@ -3533,45 +3533,15 @@ public interface PlSqlParserListener extends ParseTreeListener {
 	 */
 	void exitCase_statement(PlSqlParser.Case_statementContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#simple_case_statement}.
+	 * Enter a parse tree produced by {@link PlSqlParser#case_when_part}.
 	 * @param ctx the parse tree
 	 */
-	void enterSimple_case_statement(PlSqlParser.Simple_case_statementContext ctx);
+	void enterCase_when_part(PlSqlParser.Case_when_partContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#simple_case_statement}.
+	 * Exit a parse tree produced by {@link PlSqlParser#case_when_part}.
 	 * @param ctx the parse tree
 	 */
-	void exitSimple_case_statement(PlSqlParser.Simple_case_statementContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#simple_case_when_part}.
-	 * @param ctx the parse tree
-	 */
-	void enterSimple_case_when_part(PlSqlParser.Simple_case_when_partContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#simple_case_when_part}.
-	 * @param ctx the parse tree
-	 */
-	void exitSimple_case_when_part(PlSqlParser.Simple_case_when_partContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#searched_case_statement}.
-	 * @param ctx the parse tree
-	 */
-	void enterSearched_case_statement(PlSqlParser.Searched_case_statementContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#searched_case_statement}.
-	 * @param ctx the parse tree
-	 */
-	void exitSearched_case_statement(PlSqlParser.Searched_case_statementContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#searched_case_when_part}.
-	 * @param ctx the parse tree
-	 */
-	void enterSearched_case_when_part(PlSqlParser.Searched_case_when_partContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#searched_case_when_part}.
-	 * @param ctx the parse tree
-	 */
-	void exitSearched_case_when_part(PlSqlParser.Searched_case_when_partContext ctx);
+	void exitCase_when_part(PlSqlParser.Case_when_partContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link PlSqlParser#case_else_part}.
 	 * @param ctx the parse tree

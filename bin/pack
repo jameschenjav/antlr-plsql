@@ -1,3 +1,4 @@
 #!/bin/sh
 cur_dir=$(dirname "$0")
 jar -c -f "$cur_dir/../lib/PlSql.jar" -C "$cur_dir/../target/classes" .
+# kotlinc $cur_dir/../src/*.kt $cur_dir/../src/*.java -cp "$cur_dir/../lib/antlr4-runtime-4.7.jar;$cur_dir/../lib/json-20171018.jar" -include-runtime -d $cur_dir/../lib/PlSql.jar

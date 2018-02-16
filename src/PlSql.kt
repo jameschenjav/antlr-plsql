@@ -63,7 +63,7 @@ class PlSql: PlSqlParserBaseListener() {
 
 		private fun walk(t: ParseTree): Jo {
 			if (t is ErrorNode) {
-				return Jo("Error")
+				return Jo("Error", v = t.toString())
 			}
 			if (t is TerminalNode) {
 				return Jo("string", v = t.toString())
@@ -122,16 +122,17 @@ class PlSql: PlSqlParserBaseListener() {
 			}
 
 			if (Flags.a) {
-				val jsonMap = mutableMapOf<String, Jo>()
+				val jsonItems = mutableListOf<String>()
+				val re = Regex("[\\\\/]")
 				files.forEach {
 					System.err.println("Parsing:\t${it}")
 					val stream = ByteArrayInputStream(File(it).readBytes())
 					val lexer = PlSqlLexer(CharStreams.fromStream(stream))
 					val parser = PlSqlParser(CommonTokenStream(lexer))
-					jsonMap[it.split("/").last()] = walk(parser.javln())
+					jsonItems.add(""""${it.split(re).last()}":${JSONObject(walk(parser.javln())).toString()}""")
 				}
 
-				println(JSONObject(jsonMap))
+				println(jsonItems.joinToString(",", "{", "}"))
 				return
 			}
 

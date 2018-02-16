@@ -258,7 +258,7 @@ non_dml_trigger
 trigger_body
     : COMPOUND TRIGGER
     | CALL identifier
-    | trigger_block
+    | DECLARE? trigger_block
     ;
 
 routine_clause
@@ -686,7 +686,7 @@ container_clause
 create_view
     : CREATE (OR REPLACE)? (OR? FORCE)? EDITIONING? VIEW
       tableview_name view_options?
-      AS subquery subquery_restriction_clause?
+      AS subquery  order_by_clause? subquery_restriction_clause?
     ;
 
 view_options
@@ -897,7 +897,7 @@ create_materialized_view
         create_mv_refresh?
         (FOR UPDATE)?
         ( (DISABLE | ENABLE) QUERY REWRITE )?
-        AS subquery
+        AS subquery order_by_clause?
         ';'
     ;
 
@@ -1828,7 +1828,7 @@ insert_into_clause
     ;
 
 values_clause
-    : VALUES '(' expressions? ')'
+    : VALUES ( regular_id |'(' expressions? ')' )
     ;
 
 merge_statement
@@ -2076,7 +2076,7 @@ string_function
     | CHR '(' concatenation USING NCHAR_CS ')'
     | NVL '(' expression ',' expression ')'
     | TRIM '(' ((LEADING | TRAILING | BOTH)? quoted_string? FROM)? concatenation ')'
-    | TO_DATE '(' expression (',' quoted_string)? ')'
+    | TO_DATE '(' expression (',' expression)? ')'
     ;
 
 standard_function
@@ -2759,7 +2759,7 @@ regular_id
     // | BY
     | BYTE
     | C_LETTER
-    // | CACHE
+    | CACHE
     | CALL
     | CANONICAL
     | CASCADE
@@ -2882,6 +2882,7 @@ regular_id
     | HIDE
     | HOUR
     | ID
+	| IDENTIFIER
     //| IF
     | IGNORE
     | IMMEDIATE
@@ -3013,7 +3014,7 @@ regular_id
     //| PIVOT
     | PLAN
     | PLS_INTEGER
-		| POLICY
+    | POLICY
     | POSITIVE
     | POSITIVEN
     | PRAGMA
@@ -3022,6 +3023,7 @@ regular_id
     | PRESENT
     //| PRIOR
     //| PROCEDURE
+    | PROFILE
     | PROGRAM
     | RAISE
     | RANGE
@@ -3052,6 +3054,7 @@ regular_id
     | ROWID
     | ROWS
     | RULES
+    | SALT
     | SAMPLE
     | SAVE
     | SAVEPOINT

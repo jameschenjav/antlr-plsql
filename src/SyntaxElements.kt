@@ -38,16 +38,16 @@ abstract class SynItem {
 			}
 		}
 	}
-	
+
 	protected fun addItemsToMap(dataMap: MutableMap<String, Any?>) {
 		if (items.isNotEmpty()) dataMap["es"] = items.map { it.toDataMap() }
 	}
 
-	open protected fun addDataToMap(dataMap: MutableMap<String, Any?>) {
+	protected open fun addDataToMap(dataMap: MutableMap<String, Any?>) {
 		addItemsToMap(dataMap)
 	}
 
-	open protected fun afterMatch(synItem: SynItem?, ctx: ParserRuleContext, synClass: KClass<out SynItem>) {
+	protected open fun afterMatch(synItem: SynItem?, ctx: ParserRuleContext, synClass: KClass<out SynItem>) {
 		if (synItem != null) {
 			items.add(synItem)
 		}

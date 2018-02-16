@@ -4239,49 +4239,13 @@ public class PlSqlParserBaseListener implements PlSqlParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSimple_case_statement(PlSqlParser.Simple_case_statementContext ctx) { }
+	@Override public void enterCase_when_part(PlSqlParser.Case_when_partContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitSimple_case_statement(PlSqlParser.Simple_case_statementContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSimple_case_when_part(PlSqlParser.Simple_case_when_partContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSimple_case_when_part(PlSqlParser.Simple_case_when_partContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSearched_case_statement(PlSqlParser.Searched_case_statementContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSearched_case_statement(PlSqlParser.Searched_case_statementContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSearched_case_when_part(PlSqlParser.Searched_case_when_partContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSearched_case_when_part(PlSqlParser.Searched_case_when_partContext ctx) { }
+	@Override public void exitCase_when_part(PlSqlParser.Case_when_partContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
