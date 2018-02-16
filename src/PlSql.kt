@@ -1,7 +1,7 @@
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.Token
-import org.antlr.v4.runtime.tree.ParseTreeWalker
+import org.antlr.v4.runtime.tree.*
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -55,6 +55,31 @@ class PlSql: PlSqlParserBaseListener() {
 			val t: Int	// type
 		)
 
+		data class Jo(
+			val tk: String,
+			val nodes: List<Jo>? = null,
+			val v: String? = null
+		)
+
+		private fun walk(t: ParseTree): Jo {
+			if (t is ErrorNode) {
+				return Jo("Error")
+			}
+			if (t is TerminalNode) {
+				return Jo("string", v = t.toString())
+			}
+
+			val node = t as RuleNode
+			val count = node.childCount
+			var i = 0
+			val nodes = mutableListOf<Jo>()
+			while (i < count) {
+				nodes.add(walk(node.getChild(i)))
+				i += 1
+			}
+			return Jo(t.javaClass.simpleName, nodes.toList())
+		}
+
 		private fun createTokenData(token: Token) = TokenData(
 			token.line, token.charPositionInLine, token.startIndex, token.stopIndex+1, token.type
 		)
@@ -65,6 +90,7 @@ class PlSql: PlSqlParserBaseListener() {
 			var t = false // token
 			var c = false // code
 			var h = false // help
+			var a = false // TEST
 		}
 
 		private val helpMessage = """
@@ -72,6 +98,7 @@ class PlSql: PlSqlParserBaseListener() {
     |	-h	Help:	Display this message
     |	-t	Tokens:	Generate JSON with Tokens
     |	-c	Code:	Generate JSON with Code
+    |	-a	AST:	Generate AST as JSON
 		""".trimMargin()
 
 		@JvmStatic
@@ -82,6 +109,7 @@ class PlSql: PlSqlParserBaseListener() {
 						't' -> Flags.t = true
 						'c' -> Flags.c = true
 						'h' -> Flags.h = true
+						'a' -> Flags.a = true
 					}
 				} else {
 					files.add(it)
@@ -90,6 +118,20 @@ class PlSql: PlSqlParserBaseListener() {
 
 			if (Flags.h || files.isEmpty()) {
 				println(helpMessage)
+				return
+			}
+
+			if (Flags.a) {
+				val jsonMap = mutableMapOf<String, Jo>()
+				files.forEach {
+					System.err.println("Parsing:\t${it}")
+					val stream = ByteArrayInputStream(File(it).readBytes())
+					val lexer = PlSqlLexer(CharStreams.fromStream(stream))
+					val parser = PlSqlParser(CommonTokenStream(lexer))
+					jsonMap[it.split("/").last()] = walk(parser.javln())
+				}
+
+				println(JSONObject(jsonMap))
 				return
 			}
 
