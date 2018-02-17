@@ -4467,18 +4467,6 @@ public class PlSqlParserBaseListener implements PlSqlParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterWithin_or_over_part(PlSqlParser.Within_or_over_partContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitWithin_or_over_part(PlSqlParser.Within_or_over_partContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterCost_matrix_clause(PlSqlParser.Cost_matrix_clauseContext ctx) { }
 	/**
 	 * {@inheritDoc}

@@ -2094,43 +2094,16 @@ numeric_function
 	;
 
 other_function
-	: over_clause_keyword function_argument_analytic over_clause?
-	| /*TODO stantard_function_enabling_using*/ regular_id function_argument_modeling using_clause?
-	| (CAST | XMLCAST) '(' (MULTISET '(' subquery ')' | concatenation) AS type_spec ')'
-	| COALESCE '(' table_element (',' (numeric | quoted_string))? ')'
+	: CAST '(' (MULTISET '(' subquery ')' | concatenation) AS type_spec ')'
 	| COLLECT '(' (DISTINCT | UNIQUE)? concatenation collect_order_by_part? ')'
-	| within_or_over_clause_keyword function_argument within_or_over_part+
-	| cursor_name ( PERCENT_ISOPEN | PERCENT_FOUND | PERCENT_NOTFOUND | PERCENT_ROWCOUNT )
 	| DECOMPOSE '(' concatenation (CANONICAL | COMPATIBILITY)? ')'
 	| EXTRACT '(' regular_id FROM concatenation ')'
-	| (FIRST_VALUE | LAST_VALUE) function_argument_analytic respect_or_ignore_nulls? over_clause
-	| standard_prediction_function_keyword
-	  '(' argument_list cost_matrix_clause? using_clause? ')'
 	| TRANSLATE '(' expression (USING (CHAR_CS | NCHAR_CS))? (',' expression)* ')'
 	| TREAT '(' expression AS REF? type_spec ')'
-	| TRIM '(' ((LEADING | TRAILING | BOTH)? quoted_string? FROM)? concatenation ')'
-	| XMLAGG '(' expression order_by_clause? ')' ('.' general_element_part)?
-	| (XMLCOLATTVAL | XMLFOREST)
-	  '(' (','? xml_multiuse_expression_element)+ ')' ('.' general_element_part)?
-	| XMLELEMENT
-	  '(' (ENTITYESCAPING | NOENTITYESCAPING)? (NAME | EVALNAME)? expression
-	   (/*TODO{input.LT(2).getText().equalsIgnoreCase("xmlattributes")}?*/ ',' xml_attributes_clause)?
-	   (',' expression column_alias?)* ')' ('.' general_element_part)?
-	| XMLEXISTS '(' expression xml_passing_clause? ')'
-	| XMLPARSE '(' (DOCUMENT | CONTENT) concatenation WELLFORMED? ')' ('.' general_element_part)?
-	| XMLPI
-	  '(' (NAME identifier | EVALNAME concatenation) (',' concatenation)? ')' ('.' general_element_part)?
-	| XMLQUERY
-	  '(' concatenation xml_passing_clause? RETURNING CONTENT (NULL ON EMPTY)? ')' ('.' general_element_part)?
-	| XMLROOT
-	  '(' concatenation (',' xmlroot_param_version_part)? (',' xmlroot_param_standalone_part)? ')' ('.' general_element_part)?
-	| XMLSERIALIZE
-	  '(' (DOCUMENT | CONTENT) concatenation (AS type_spec)?
-	  xmlserialize_param_enconding_part? xmlserialize_param_version_part? xmlserialize_param_ident_part? ((HIDE | SHOW) DEFAULTS)? ')'
-	  ('.' general_element_part)?
-	| XMLTABLE
-	  '(' xml_namespaces_clause? concatenation xml_passing_clause? (COLUMNS xml_table_column (',' xml_table_column))? ')' ('.' general_element_part)?
-	| id_expr_name '(' argument_list ')'
+	| within_or_over_clause_keyword function_argument
+		( WITHIN GROUP '(' order_by_clause ')' | over_clause )+
+	| id_expr_name '(' argument_list? ')'
+	| cursor_name ( PERCENT_ISOPEN | PERCENT_FOUND | PERCENT_NOTFOUND | PERCENT_ROWCOUNT )
 	;
 
 over_clause_keyword
@@ -2201,11 +2174,6 @@ using_element
 
 collect_order_by_part
 	: ORDER BY concatenation
-	;
-
-within_or_over_part
-	: WITHIN GROUP '(' order_by_clause ')'
-	| over_clause
 	;
 
 cost_matrix_clause
@@ -2397,7 +2365,7 @@ keep_clause
 	;
 
 function_argument
-	: '(' (','? argument)* ')' keep_clause?
+	: '(' argument_list? ')' keep_clause?
 	;
 
 function_argument_analytic

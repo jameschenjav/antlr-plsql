@@ -3723,16 +3723,6 @@ public interface PlSqlParserListener extends ParseTreeListener {
 	 */
 	void exitCollect_order_by_part(PlSqlParser.Collect_order_by_partContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#within_or_over_part}.
-	 * @param ctx the parse tree
-	 */
-	void enterWithin_or_over_part(PlSqlParser.Within_or_over_partContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#within_or_over_part}.
-	 * @param ctx the parse tree
-	 */
-	void exitWithin_or_over_part(PlSqlParser.Within_or_over_partContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link PlSqlParser#cost_matrix_clause}.
 	 * @param ctx the parse tree
 	 */
