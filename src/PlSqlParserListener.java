@@ -3573,16 +3573,6 @@ public interface PlSqlParserListener extends ParseTreeListener {
 	 */
 	void exitQuantified_expression(PlSqlParser.Quantified_expressionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#string_function}.
-	 * @param ctx the parse tree
-	 */
-	void enterString_function(PlSqlParser.String_functionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#string_function}.
-	 * @param ctx the parse tree
-	 */
-	void exitString_function(PlSqlParser.String_functionContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link PlSqlParser#standard_function}.
 	 * @param ctx the parse tree
 	 */
@@ -3592,6 +3582,16 @@ public interface PlSqlParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitStandard_function(PlSqlParser.Standard_functionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link PlSqlParser#string_function}.
+	 * @param ctx the parse tree
+	 */
+	void enterString_function(PlSqlParser.String_functionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link PlSqlParser#string_function}.
+	 * @param ctx the parse tree
+	 */
+	void exitString_function(PlSqlParser.String_functionContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link PlSqlParser#numeric_function_wrapper}.
 	 * @param ctx the parse tree
@@ -4342,24 +4342,4 @@ public interface PlSqlParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitRegular_id(PlSqlParser.Regular_idContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#string_function_name}.
-	 * @param ctx the parse tree
-	 */
-	void enterString_function_name(PlSqlParser.String_function_nameContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#string_function_name}.
-	 * @param ctx the parse tree
-	 */
-	void exitString_function_name(PlSqlParser.String_function_nameContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#numeric_function_name}.
-	 * @param ctx the parse tree
-	 */
-	void enterNumeric_function_name(PlSqlParser.Numeric_function_nameContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#numeric_function_name}.
-	 * @param ctx the parse tree
-	 */
-	void exitNumeric_function_name(PlSqlParser.Numeric_function_nameContext ctx);
 }

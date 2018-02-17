@@ -1434,7 +1434,7 @@ close_statement
 	;
 
 open_statement
-	: OPEN cursor_name ('(' argument_list? ')')?
+	: OPEN cursor_name ('(' argument_list ')')?
 	;
 
 fetch_statement
@@ -1923,11 +1923,11 @@ seed_part
 	: SEED '(' expression ')'
 	;
 
-// Expression & Condition
-
 argument_list
-	: expression (',' expression)*
+	: argument (',' argument)*
 	;
+
+// Expression & Condition
 
 expression
 	: cursor_expression
@@ -2070,18 +2070,15 @@ quantified_expression
 	: (SOME | EXISTS | ALL | ANY) ('(' subquery ')' | '(' expression ')')
 	;
 
-string_function
-	: SUBSTR '(' expression ',' expression (',' expression)? ')'
-	| TO_CHAR '(' (table_element | standard_function | expression)
-				  (',' quoted_string)? (',' quoted_string)? ')'
-	| CHR '(' concatenation USING NCHAR_CS ')'
-	| TRIM '(' ((LEADING | TRAILING | BOTH)? quoted_string? FROM)? concatenation ')'
-	;
-
 standard_function
 	: string_function
 	| numeric_function_wrapper
 	| other_function
+	;
+
+string_function
+	: CHR '(' concatenation USING NCHAR_CS ')'
+	| TRIM '(' ((LEADING | TRAILING | BOTH)? quoted_string? FROM)? concatenation ')'
 	;
 
 numeric_function_wrapper
@@ -2099,7 +2096,6 @@ numeric_function
 other_function
 	: over_clause_keyword function_argument_analytic over_clause?
 	| /*TODO stantard_function_enabling_using*/ regular_id function_argument_modeling using_clause?
-	| COUNT '(' ( '*' | (DISTINCT | UNIQUE | ALL)? concatenation) ')' over_clause?
 	| (CAST | XMLCAST) '(' (MULTISET '(' subquery ')' | concatenation) AS type_spec ')'
 	| COALESCE '(' table_element (',' (numeric | quoted_string))? ')'
 	| COLLECT '(' (DISTINCT | UNIQUE)? concatenation collect_order_by_part? ')'
@@ -2800,6 +2796,7 @@ regular_id
 	| DIMENSION
 	| DISABLE
 	| DISASSOCIATE
+	| DIRECTORY
 	//| DISTINCT
 	| DOCUMENT
 	| DOUBLE
@@ -2812,6 +2809,7 @@ regular_id
 	| EMPTY
 	| ENABLE
 	| ENCODING
+	| ENCRYPT
 	//| END
 	| ENTITYESCAPING
 	| ERR
@@ -2901,6 +2899,7 @@ regular_id
 	| LIKEC
 	| LIMIT
 	| LINK
+	| LIST
 	| LOCAL
 	//| LOCK
 	| LOCKED
@@ -3100,6 +3099,7 @@ regular_id
 	| TIMEZONE_REGION
 	//| TO
 	| TO_DATE
+	| TO_CHAR
 	| TRAILING
 	| TRANSACTION
 	| TRANSLATE
@@ -3193,19 +3193,4 @@ regular_id
 	| STDDEV
 	| VAR_
 	| COVAR_
-	;
-
-string_function_name
-	: CHR
-	| SUBSTR
-	| TO_CHAR
-	| TRIM
-	;
-
-numeric_function_name
-	: AVG
-	| COUNT
-	| NVL
-	| ROUND
-	| SUM
 	;

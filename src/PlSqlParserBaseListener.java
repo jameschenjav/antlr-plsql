@@ -4287,18 +4287,6 @@ public class PlSqlParserBaseListener implements PlSqlParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterString_function(PlSqlParser.String_functionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitString_function(PlSqlParser.String_functionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterStandard_function(PlSqlParser.Standard_functionContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -4306,6 +4294,18 @@ public class PlSqlParserBaseListener implements PlSqlParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitStandard_function(PlSqlParser.Standard_functionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterString_function(PlSqlParser.String_functionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitString_function(PlSqlParser.String_functionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -5206,30 +5206,6 @@ public class PlSqlParserBaseListener implements PlSqlParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitRegular_id(PlSqlParser.Regular_idContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterString_function_name(PlSqlParser.String_function_nameContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitString_function_name(PlSqlParser.String_function_nameContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterNumeric_function_name(PlSqlParser.Numeric_function_nameContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitNumeric_function_name(PlSqlParser.Numeric_function_nameContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
