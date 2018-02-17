@@ -66,8 +66,11 @@ class PlSql: PlSqlParserBaseListener() {
 			return s.substring(0, s.length - 7).toLowerCase()
 		}
 
+		private var err = 0
+
 		private fun walk(t: ParseTree): Jo {
 			if (t is ErrorNode) {
+				err = 1
 				return Jo("ERR", v = t.toString())
 			}
 			if (t is TerminalNode) {
@@ -83,6 +86,17 @@ class PlSql: PlSqlParserBaseListener() {
 				i += 1
 			}
 			return Jo(convertContent(t), nodes.toList())
+		}
+
+		private val rePathSplitter = Regex("[\\\\/]")
+
+		private fun buildJsonLine(name: String, tree: ParseTree): String {
+			err = 0
+			val json = JSONObject(walk(tree))
+			json.put("error", err)
+			return """
+    		|"${name.split(rePathSplitter).last()}":${json}
+			""".trimMargin()
 		}
 
 		private fun createTokenData(token: Token) = TokenData(
@@ -128,13 +142,12 @@ class PlSql: PlSqlParserBaseListener() {
 
 			if (Flags.a) {
 				val jsonItems = mutableListOf<String>()
-				val re = Regex("[\\\\/]")
 				files.forEach {
 					System.err.println("Parsing:\t${it}")
 					val stream = ByteArrayInputStream(File(it).readBytes())
 					val lexer = PlSqlLexer(CharStreams.fromStream(stream))
 					val parser = PlSqlParser(CommonTokenStream(lexer))
-					jsonItems.add(""""${it.split(re).last()}":${JSONObject(walk(parser.javln())).toString()}""")
+					jsonItems.add(buildJsonLine(it, parser.javln()))
 				}
 
 				println(jsonItems.joinToString(",", "{", "}"))

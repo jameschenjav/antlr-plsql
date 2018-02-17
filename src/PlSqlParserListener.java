@@ -3343,16 +3343,6 @@ public interface PlSqlParserListener extends ParseTreeListener {
 	 */
 	void exitSeed_part(PlSqlParser.Seed_partContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#condition}.
-	 * @param ctx the parse tree
-	 */
-	void enterCondition(PlSqlParser.ConditionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#condition}.
-	 * @param ctx the parse tree
-	 */
-	void exitCondition(PlSqlParser.ConditionContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link PlSqlParser#expressions}.
 	 * @param ctx the parse tree
 	 */

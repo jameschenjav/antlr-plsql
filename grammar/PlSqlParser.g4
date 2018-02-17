@@ -234,7 +234,7 @@ trigger_follows_clause
     ;
 
 trigger_when_clause
-    : WHEN '(' condition ')'
+    : WHEN '(' expression ')'
     ;
 
 // Create Trigger Specific Clauses
@@ -1083,7 +1083,7 @@ add_constraint
     ;
 
 check_constraint
-    : CHECK '(' condition ')' DISABLE?
+    : CHECK '(' expression ')' DISABLE?
     ;
 
 drop_constraint
@@ -1292,11 +1292,11 @@ assignment_statement
     ;
 
 continue_statement
-    : CONTINUE label_name? (WHEN condition)?
+    : CONTINUE label_name? (WHEN expression)?
     ;
 
 exit_statement
-    : EXIT label_name? (WHEN condition)?
+    : EXIT label_name? (WHEN expression)?
     ;
 
 goto_statement
@@ -1304,11 +1304,11 @@ goto_statement
     ;
 
 if_statement
-    : IF condition THEN seq_of_statements elsif_part* else_part? END IF
+    : IF expression THEN seq_of_statements elsif_part* else_part? END IF
     ;
 
 elsif_part
-    : ELSIF condition THEN seq_of_statements
+    : ELSIF expression THEN seq_of_statements
     ;
 
 else_part
@@ -1316,7 +1316,7 @@ else_part
     ;
 
 loop_statement
-    : label_declaration? (WHILE condition | FOR cursor_loop_param)? LOOP seq_of_statements END LOOP label_name?
+    : label_declaration? (WHILE expression | FOR cursor_loop_param)? LOOP seq_of_statements END LOOP label_name?
     ;
 
 // Loop Specific Clause
@@ -1593,7 +1593,7 @@ join_clause
     ;
 
 join_on_part
-    : ON condition
+    : ON expression
     ;
 
 join_using_part
@@ -1653,12 +1653,12 @@ unpivot_in_elements
     ;
 
 hierarchical_query_clause
-    : CONNECT BY NOCYCLE? condition start_part?
-    | start_part CONNECT BY NOCYCLE? condition
+    : CONNECT BY NOCYCLE? expression start_part?
+    | start_part CONNECT BY NOCYCLE? expression
     ;
 
 start_part
-    : START WITH condition
+    : START WITH expression
     ;
 
 group_by_clause
@@ -1687,7 +1687,7 @@ grouping_sets_elements
     ;
 
 having_clause
-    : HAVING condition
+    : HAVING expression
     ;
 
 model_clause
@@ -1748,7 +1748,7 @@ model_iterate_clause
     ;
 
 until_part
-    : UNTIL '(' condition ')'
+    : UNTIL '(' expression ')'
     ;
 
 order_by_clause
@@ -1816,7 +1816,7 @@ conditional_insert_clause
     ;
 
 conditional_insert_when_part
-    : WHEN condition THEN multi_table_element+
+    : WHEN expression THEN multi_table_element+
     ;
 
 conditional_insert_else_part
@@ -1832,7 +1832,7 @@ values_clause
     ;
 
 merge_statement
-    : MERGE INTO tableview_name table_alias? USING selected_tableview ON '(' condition ')'
+    : MERGE INTO tableview_name table_alias? USING selected_tableview ON '(' expression ')'
       (merge_update_clause merge_insert_clause? | merge_insert_clause merge_update_clause?)?
       error_logging_clause?
     ;
@@ -1928,10 +1928,6 @@ seed_part
     ;
 
 // Expression & Condition
-
-condition
-    : expression
-    ;
 
 expressions
     : expression (',' expression)*
