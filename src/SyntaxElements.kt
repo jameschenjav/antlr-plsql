@@ -153,18 +153,18 @@ open class Identifier: SynItem() {
 	}
 }
 
-@OnRules([PlSqlParser.Type_nameContext::class])
-class TypeName: Identifier()
+@OnRules([PlSqlParser.Id_expr_nameContext::class])
+class IdExprName : Identifier()
 
 @OnRules([PlSqlParser.DatatypeContext::class])
 class DataType: TextItem()
 
 @OnRules([PlSqlParser.Type_specContext::class])
-@SubRules([TypeName::class, DataType::class])
+@SubRules([IdExprName::class, DataType::class])
 class TypeSpec: SynItem()
 
 @OnRules([PlSqlParser.Select_statementContext::class])
-@SubRules([TypeName::class])
+@SubRules([IdExprName::class])
 class SelectStatement: SynItem()
 
 // Base Symbol Item
@@ -359,8 +359,8 @@ class InvokerRights: SynItem()
 class DeclarationsBlock: BaseStatement()
 
 // Body
-@OnRules([PlSqlParser.Exception_nameContext::class])
-class ExceptionName: Identifier()
+@OnRules([PlSqlParser.Id_nameContext::class])
+class IdName : Identifier()
 
 @OnRules([PlSqlParser.Seq_of_statementsContext::class])
 @SubRules([
@@ -383,7 +383,7 @@ class ExceptionName: Identifier()
 class StatementsBlock: SynItem()
 
 @OnRules([PlSqlParser.Exception_handlerContext::class])
-@SubRules([ExceptionName::class, StatementsBlock::class])
+@SubRules([IdName::class, StatementsBlock::class])
 class ExceptionCase: BaseStatement()
 
 @OnRules([PlSqlParser.ExceptionsContext::class])

@@ -1,0 +1,3 @@
+#!/bin/sh
+cur_dir=$(dirname "$0")
+jar -c -f "$cur_dir/../lib/PlSql.jar" -C "$cur_dir/../target/classes" .

@@ -326,11 +326,11 @@ referencing_element
 // DDLs
 
 drop_type
-    : DROP TYPE BODY? type_name (FORCE | VALIDATE)? ';'
+    : DROP TYPE BODY? id_expr_name (FORCE | VALIDATE)? ';'
     ;
 
 alter_type
-    : ALTER TYPE type_name
+    : ALTER TYPE id_expr_name
     (compile_type_clause
     | replace_type_clause
     //TODO | {input.LT(2).getText().equalsIgnoreCase("attribute")}? alter_attribute_definition
@@ -386,7 +386,7 @@ create_type
 // Create Type Specific Clauses
 
 type_definition
-    : type_name (OID CHAR_STRING)? object_type_def?
+    : id_expr_name (OID CHAR_STRING)? object_type_def?
     ;
 
 object_type_def
@@ -411,7 +411,7 @@ sqlj_object_type
     ;
 
 type_body
-    : BODY type_name (IS | AS) (type_body_elements)+ END
+    : BODY id_expr_name (IS | AS) (type_body_elements)+ END
     ;
 
 type_body_elements
@@ -507,15 +507,15 @@ type_elements_parameter
 // Sequence DDLs
 
 drop_sequence
-    : DROP SEQUENCE sequence_name ';'
+    : DROP SEQUENCE id_expr_name ';'
     ;
 
 alter_sequence
-    : ALTER SEQUENCE sequence_name sequence_spec+ ';'
+    : ALTER SEQUENCE id_expr_name sequence_spec+ ';'
     ;
 
 create_sequence
-    : CREATE SEQUENCE sequence_name (sequence_start_clause | sequence_spec)* ';'
+    : CREATE SEQUENCE id_expr_name (sequence_start_clause | sequence_spec)* ';'
     ;
 
 // Common Sequence
@@ -701,7 +701,7 @@ view_alias_constraint
     ;
 
 object_view_clause
-    : OF type_name
+    : OF id_expr_name
        ( WITH OBJECT (IDENTIFIER|ID|OID) ( DEFAULT | '(' (','? REGULAR_ID)+ ')' )
        | UNDER tableview_name
        )
@@ -886,7 +886,7 @@ mv_log_purge_clause
 
 create_materialized_view
     : CREATE MATERIALIZED VIEW tableview_name
-      (OF type_name )?
+      (OF id_expr_name )?
 //scoped_table_ref and column alias goes here  TODO
         ( ON PREBUILT TABLE ( (WITH | WITHOUT) REDUCED PRECISION)?
         | physical_properties?  (CACHE | NOCACHE)? parallel_clause? build_clause?
@@ -973,7 +973,7 @@ table_range_partition_by_clause
     ;
 
 datatype_null_enable
-   : column_name datatype
+   : id_name datatype
          SORT?  (DEFAULT expression)? (ENCRYPT ( USING  CHAR_STRING )? (IDENTIFIED BY REGULAR_ID)? CHAR_STRING? ( NO? SALT )? )?
          (NOT NULL)? (ENABLE | DISABLE)?
    ;
@@ -1049,7 +1049,7 @@ drop_table
     ;
 
 comment_on_column
-    : COMMENT ON COLUMN tableview_name PERIOD column_name IS quoted_string
+    : COMMENT ON COLUMN tableview_name PERIOD id_name IS quoted_string
     ;
 
 // Synonym DDL Clauses
@@ -1123,7 +1123,7 @@ primary_key_clause
 // Anonymous PL/SQL code block
 
 anonymous_block
-    : (DECLARE seq_of_declare_specs)? BEGIN seq_of_statements exceptions END SEMICOLON
+    : (DECLARE seq_of_declare_specs)? BEGIN seq_of_statements exceptions? END SEMICOLON
     ;
 
 // Common DDL Clauses
@@ -1215,7 +1215,7 @@ exception_declaration
 pragma_declaration
     : PRAGMA (SERIALLY_REUSABLE
     | AUTONOMOUS_TRANSACTION
-    | EXCEPTION_INIT '(' exception_name ',' numeric_negative ')'
+    | EXCEPTION_INIT '(' id_name ',' numeric_negative ')'
     | INLINE '(' id1=identifier ',' expression ')'
     | RESTRICT_REFERENCES '(' (identifier | DEFAULT) (',' identifier)+ ')') ';'
     ;
@@ -1229,7 +1229,7 @@ record_type_def
     ;
 
 field_spec
-    : column_name type_spec? (NOT NULL)? default_value_part?
+    : id_name type_spec? (NOT NULL)? default_value_part?
     ;
 
 ref_cursor_type_def
@@ -1353,7 +1353,7 @@ null_statement
     ;
 
 raise_statement
-    : RAISE exception_name?
+    : RAISE id_name?
     ;
 
 return_statement
@@ -1368,17 +1368,17 @@ pipe_row_statement
     : PIPE ROW '(' expression ')';
 
 body
-    : BEGIN seq_of_statements exceptions END label_name?
+    : BEGIN seq_of_statements exceptions? END label_name?
     ;
 
 exceptions
-	: (EXCEPTION exception_handler+)?
+	: EXCEPTION exception_handler+
 	;
 
 // Body Specific Clause
 
 exception_handler
-    : WHEN exception_name (OR exception_name)* THEN seq_of_statements
+    : WHEN id_name (OR id_name)* THEN seq_of_statements
     ;
 
 trigger_block
@@ -1525,12 +1525,12 @@ factoring_element
     ;
 
 search_clause
-    : SEARCH (DEPTH | BREADTH) FIRST BY column_name ASC? DESC? (NULLS FIRST)? (NULLS LAST)?
-      (',' column_name ASC? DESC? (NULLS FIRST)? (NULLS LAST)?)* SET column_name
+    : SEARCH (DEPTH | BREADTH) FIRST BY id_name ASC? DESC? (NULLS FIRST)? (NULLS LAST)?
+      (',' id_name ASC? DESC? (NULLS FIRST)? (NULLS LAST)?)* SET id_name
     ;
 
 cycle_clause
-    : CYCLE column_list SET column_name TO expression DEFAULT expression
+    : CYCLE column_list SET id_name TO expression DEFAULT expression
     ;
 
 subquery
@@ -1618,11 +1618,11 @@ pivot_clause
     ;
 
 pivot_element
-    : aggregate_function_name '(' expression ')' column_alias?
+    : id_name '(' expression ')' column_alias?
     ;
 
 pivot_for_clause
-    : FOR (column_name | paren_column_list)
+    : FOR (id_name | paren_column_list)
     ;
 
 pivot_in_clause
@@ -1640,7 +1640,7 @@ pivot_in_clause_elements
 
 unpivot_clause
     : UNPIVOT ((INCLUDE | EXCLUDE) NULLS)?
-    '(' (column_name | paren_column_list) pivot_for_clause unpivot_in_clause ')'
+    '(' (id_name | paren_column_list) pivot_for_clause unpivot_in_clause ')'
     ;
 
 unpivot_in_clause
@@ -1648,7 +1648,7 @@ unpivot_in_clause
     ;
 
 unpivot_in_elements
-    : (column_name | paren_column_list)
+    : (id_name | paren_column_list)
       (AS (constant | '(' (','? constant)+ ')'))?
     ;
 
@@ -1785,7 +1785,7 @@ update_set_clause
     ;
 
 column_based_update_set_clause
-    : column_name '=' expression
+    : id_name '=' expression
     | paren_column_list '=' subquery
     ;
 
@@ -1844,7 +1844,7 @@ merge_update_clause
     ;
 
 merge_element
-    : column_name '=' expression
+    : id_name '=' expression
     ;
 
 merge_update_delete_part
@@ -2013,7 +2013,7 @@ model_expression_element
     ;
 
 single_column_for_loop
-    : FOR column_name
+    : FOR id_name
        ( IN '(' expressions? ')'
        | (LIKE expression)? FROM fromExpr=expression TO toExpr=expression
          action_type=(INCREMENT | DECREMENT) action_expr=expression)
@@ -2322,7 +2322,7 @@ xml_column_name
     ;
 
 routine_name
-    : identifier ('.' id_expression)* ('@' common_name)?
+    : id_name ('@' common_name)?
     ;
 
 common_name
@@ -2333,7 +2333,7 @@ regular_name
     : identifier ('.' id_expression)?
     ;
 
-aggregate_function_name
+id_name
     : identifier ('.' id_expression)*
     ;
 
@@ -2347,27 +2347,19 @@ role_name
     ;
 
 constraint_name
-    : identifier ('.' id_expression)* ('@' common_name)?
+    : id_name ('@' common_name)?
     ;
 
 label_name
     : id_expression
     ;
 
-type_name
+id_expr_name
     : id_expression ('.' id_expression)*
-    ;
-
-sequence_name
-    : id_expression ('.' id_expression)*
-    ;
-
-exception_name
-    : identifier ('.' id_expression)*
     ;
 
 variable_name
-    : (INTRODUCER char_set_name)? id_expression ('.' id_expression)?
+    : (INTRODUCER id_expr_name)? id_expression ('.' id_expression)?
     | bind_variable
     ;
 
@@ -2381,17 +2373,9 @@ record_name
     | bind_variable
     ;
 
-column_name
-    : identifier ('.' id_expression)*
-    ;
-
 tableview_name
     : identifier ('.' id_expression)?
       ('@' common_name | /*TODO{!(input.LA(2) == BY)}?*/ partition_extension_clause)?
-    ;
-
-char_set_name
-    : id_expression ('.' id_expression)*
     ;
 
 // Represents a valid DB object name in DDL commands which are valid for several DB (or schema) objects.
@@ -2420,7 +2404,7 @@ grant_object_name
     ;
 
 column_list
-    : (','? column_name)+
+    : (','? id_name)+
     ;
 
 paren_column_list
@@ -2443,7 +2427,7 @@ function_argument_analytic
     ;
 
 function_argument_modeling
-    : '(' column_name (',' (numeric | NULL) (',' (numeric | NULL))?)?
+    : '(' id_name (',' (numeric | NULL) (',' (numeric | NULL))?)?
       USING (tableview_name '.' '*' | '*' | (','? expression column_alias?)+)
       ')' keep_clause?
     ;
@@ -2458,11 +2442,11 @@ argument
 
 type_spec
     : datatype
-    | REF? type_name (PERCENT_ROWTYPE | PERCENT_TYPE)?
+    | REF? id_expr_name (PERCENT_ROWTYPE | PERCENT_TYPE)?
     ;
 
 datatype
-    : native_datatype_element precision_part? (WITH LOCAL? TIME ZONE | CHARACTER SET char_set_name)?
+    : native_datatype_element precision_part? (WITH LOCAL? TIME ZONE | CHARACTER SET id_expr_name)?
     | INTERVAL (YEAR | DAY) ('(' expression ')')? TO (MONTH | SECOND) ('(' expression ')')?
     ;
 
@@ -2539,11 +2523,11 @@ general_element
     ;
 
 general_element_part
-    : (INTRODUCER char_set_name)? id_expression ('.' id_expression)* ('@' common_name)? function_argument?
+    : (INTRODUCER id_expr_name)? id_expr_name ('@' common_name)? function_argument?
     ;
 
 table_element
-    : (INTRODUCER char_set_name)? id_expression ('.' id_expression)*
+    : (INTRODUCER id_expr_name)? id_expr_name
     ;
 
 object_privilege
@@ -2706,13 +2690,17 @@ quoted_string
     ;
 
 identifier
-    : (INTRODUCER char_set_name)? id_expression
+    : (INTRODUCER id_expr_name)? id_expression
     ;
 
 id_expression
     : regular_id
-    | DELIMITED_ID
+    | delimited_id
     ;
+
+delimited_id
+	: DELIMITED_ID
+	;
 
 outer_join_sign
     : '(' '+' ')'
