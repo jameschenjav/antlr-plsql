@@ -958,7 +958,7 @@ table_range_partition_by_clause
 // Supposed to be literal in here, will need to refine this
 					 '('
 						(','? CHAR_STRING
-						| ','? string_function
+						| ','? standard_function
 						| ','? numeric
 						| ','? MAXVALUE
 						)+
@@ -1543,8 +1543,12 @@ subquery_operation_part
 	;
 
 query_block
-	: SELECT (DISTINCT | UNIQUE | ALL)? ('*' | (','? selected_element)+)
-	  into_clause? from_clause where_clause? hierarchical_query_clause? group_by_clause? model_clause?
+	: SELECT (DISTINCT | UNIQUE | ALL)? selected_fields into_clause?
+	  from_clause where_clause? hierarchical_query_clause? group_by_clause? model_clause?
+	;
+
+selected_fields
+	: selected_element ( ',' selected_element )*
 	;
 
 selected_element
@@ -1556,8 +1560,8 @@ from_clause
 	;
 
 select_list_elements
-	: tableview_name '.' '*'
-	| (regular_id '.')? expression
+	: ( tableview_name '.' )? '*'
+	| expression
 	;
 
 table_ref_list
@@ -2071,30 +2075,20 @@ quantified_expression
 	;
 
 standard_function
-	: string_function
-	| numeric_function_wrapper
-	| other_function
+	: special_function
+	| regular_function
+	| cursor_percent
 	;
 
-string_function
+special_function
 	: CHR '(' concatenation USING NCHAR_CS ')'
 	| TRIM '(' ((LEADING | TRAILING | BOTH)? quoted_string? FROM)? concatenation ')'
-	;
-
-numeric_function_wrapper
-	: numeric_function (single_column_for_loop | multi_column_for_loop)?
-	;
-
-numeric_function
-	: SUM '(' (DISTINCT | ALL)? expression ')'
+	| SUM '(' (DISTINCT | ALL)? expression ')'
 	| COUNT '(' ( '*' | ((DISTINCT | UNIQUE | ALL)? concatenation)? ) ')' over_clause?
 	| ROUND '(' expression (',' UNSIGNED_INTEGER)?  ')'
 	| AVG '(' (DISTINCT | ALL)? expression ')'
 	| MAX '(' (DISTINCT | ALL)? expression ')'
-	;
-
-other_function
-	: CAST '(' (MULTISET '(' subquery ')' | concatenation) AS type_spec ')'
+	| CAST '(' (MULTISET '(' subquery ')' | concatenation) AS type_spec ')'
 	| COLLECT '(' (DISTINCT | UNIQUE)? concatenation collect_order_by_part? ')'
 	| DECOMPOSE '(' concatenation (CANONICAL | COMPATIBILITY)? ')'
 	| EXTRACT '(' regular_id FROM concatenation ')'
@@ -2102,8 +2096,14 @@ other_function
 	| TREAT '(' expression AS REF? type_spec ')'
 	| within_or_over_clause_keyword function_argument
 		( WITHIN GROUP '(' order_by_clause ')' | over_clause )+
-	| id_expr_name '(' argument_list? ')'
-	| cursor_name ( PERCENT_ISOPEN | PERCENT_FOUND | PERCENT_NOTFOUND | PERCENT_ROWCOUNT )
+	;
+
+regular_function
+	: id_expr_name '(' argument_list? ')'
+	;
+
+cursor_percent
+	: cursor_name ( PERCENT_ISOPEN | PERCENT_FOUND | PERCENT_NOTFOUND | PERCENT_ROWCOUNT )
 	;
 
 over_clause_keyword

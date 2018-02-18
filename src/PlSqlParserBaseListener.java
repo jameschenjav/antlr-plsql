@@ -2979,6 +2979,18 @@ public class PlSqlParserBaseListener implements PlSqlParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterSelected_fields(PlSqlParser.Selected_fieldsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSelected_fields(PlSqlParser.Selected_fieldsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterSelected_element(PlSqlParser.Selected_elementContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -4299,49 +4311,37 @@ public class PlSqlParserBaseListener implements PlSqlParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterString_function(PlSqlParser.String_functionContext ctx) { }
+	@Override public void enterSpecial_function(PlSqlParser.Special_functionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitString_function(PlSqlParser.String_functionContext ctx) { }
+	@Override public void exitSpecial_function(PlSqlParser.Special_functionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterNumeric_function_wrapper(PlSqlParser.Numeric_function_wrapperContext ctx) { }
+	@Override public void enterRegular_function(PlSqlParser.Regular_functionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitNumeric_function_wrapper(PlSqlParser.Numeric_function_wrapperContext ctx) { }
+	@Override public void exitRegular_function(PlSqlParser.Regular_functionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterNumeric_function(PlSqlParser.Numeric_functionContext ctx) { }
+	@Override public void enterCursor_percent(PlSqlParser.Cursor_percentContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitNumeric_function(PlSqlParser.Numeric_functionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterOther_function(PlSqlParser.Other_functionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitOther_function(PlSqlParser.Other_functionContext ctx) { }
+	@Override public void exitCursor_percent(PlSqlParser.Cursor_percentContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

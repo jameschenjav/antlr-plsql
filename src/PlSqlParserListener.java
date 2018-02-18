@@ -2477,6 +2477,16 @@ public interface PlSqlParserListener extends ParseTreeListener {
 	 */
 	void exitQuery_block(PlSqlParser.Query_blockContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link PlSqlParser#selected_fields}.
+	 * @param ctx the parse tree
+	 */
+	void enterSelected_fields(PlSqlParser.Selected_fieldsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link PlSqlParser#selected_fields}.
+	 * @param ctx the parse tree
+	 */
+	void exitSelected_fields(PlSqlParser.Selected_fieldsContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link PlSqlParser#selected_element}.
 	 * @param ctx the parse tree
 	 */
@@ -3583,45 +3593,35 @@ public interface PlSqlParserListener extends ParseTreeListener {
 	 */
 	void exitStandard_function(PlSqlParser.Standard_functionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#string_function}.
+	 * Enter a parse tree produced by {@link PlSqlParser#special_function}.
 	 * @param ctx the parse tree
 	 */
-	void enterString_function(PlSqlParser.String_functionContext ctx);
+	void enterSpecial_function(PlSqlParser.Special_functionContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#string_function}.
+	 * Exit a parse tree produced by {@link PlSqlParser#special_function}.
 	 * @param ctx the parse tree
 	 */
-	void exitString_function(PlSqlParser.String_functionContext ctx);
+	void exitSpecial_function(PlSqlParser.Special_functionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#numeric_function_wrapper}.
+	 * Enter a parse tree produced by {@link PlSqlParser#regular_function}.
 	 * @param ctx the parse tree
 	 */
-	void enterNumeric_function_wrapper(PlSqlParser.Numeric_function_wrapperContext ctx);
+	void enterRegular_function(PlSqlParser.Regular_functionContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#numeric_function_wrapper}.
+	 * Exit a parse tree produced by {@link PlSqlParser#regular_function}.
 	 * @param ctx the parse tree
 	 */
-	void exitNumeric_function_wrapper(PlSqlParser.Numeric_function_wrapperContext ctx);
+	void exitRegular_function(PlSqlParser.Regular_functionContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#numeric_function}.
+	 * Enter a parse tree produced by {@link PlSqlParser#cursor_percent}.
 	 * @param ctx the parse tree
 	 */
-	void enterNumeric_function(PlSqlParser.Numeric_functionContext ctx);
+	void enterCursor_percent(PlSqlParser.Cursor_percentContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#numeric_function}.
+	 * Exit a parse tree produced by {@link PlSqlParser#cursor_percent}.
 	 * @param ctx the parse tree
 	 */
-	void exitNumeric_function(PlSqlParser.Numeric_functionContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#other_function}.
-	 * @param ctx the parse tree
-	 */
-	void enterOther_function(PlSqlParser.Other_functionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#other_function}.
-	 * @param ctx the parse tree
-	 */
-	void exitOther_function(PlSqlParser.Other_functionContext ctx);
+	void exitCursor_percent(PlSqlParser.Cursor_percentContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link PlSqlParser#over_clause_keyword}.
 	 * @param ctx the parse tree
