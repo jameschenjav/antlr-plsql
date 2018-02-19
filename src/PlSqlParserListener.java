@@ -2217,6 +2217,16 @@ public interface PlSqlParserListener extends ParseTreeListener {
 	 */
 	void exitTrigger_block(PlSqlParser.Trigger_blockContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link PlSqlParser#anonymouse_block}.
+	 * @param ctx the parse tree
+	 */
+	void enterAnonymouse_block(PlSqlParser.Anonymouse_blockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link PlSqlParser#anonymouse_block}.
+	 * @param ctx the parse tree
+	 */
+	void exitAnonymouse_block(PlSqlParser.Anonymouse_blockContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link PlSqlParser#block}.
 	 * @param ctx the parse tree
 	 */
@@ -2516,16 +2526,6 @@ public interface PlSqlParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSelect_list_elements(PlSqlParser.Select_list_elementsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link PlSqlParser#table_ref_list}.
-	 * @param ctx the parse tree
-	 */
-	void enterTable_ref_list(PlSqlParser.Table_ref_listContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link PlSqlParser#table_ref_list}.
-	 * @param ctx the parse tree
-	 */
-	void exitTable_ref_list(PlSqlParser.Table_ref_listContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link PlSqlParser#table_ref}.
 	 * @param ctx the parse tree

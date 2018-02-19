@@ -34,6 +34,7 @@ main
 	| create_table
 	| create_trigger
 	| create_view
+	| anonymouse_block
 	;
 
 // sql_script
@@ -1385,8 +1386,12 @@ trigger_block
 	: (DECLARE? declare_spec+)? body
 	;
 
-block
+anonymouse_block
 	: DECLARE? declare_spec+ body
+	;
+
+block
+	: DECLARE declare_spec+ body
 	;
 
 // SQL Statements
@@ -1556,16 +1561,12 @@ selected_element
 	;
 
 from_clause
-	: FROM table_ref_list
+	: FROM table_ref (',' table_ref)*
 	;
 
 select_list_elements
 	: ( tableview_name '.' )? '*'
 	| expression
-	;
-
-table_ref_list
-	: (','? table_ref)+
 	;
 
 // NOTE to PIVOT clause
