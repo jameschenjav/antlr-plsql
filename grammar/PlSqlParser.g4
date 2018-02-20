@@ -1383,15 +1383,15 @@ exception_handler
 	;
 
 trigger_block
-	: (DECLARE? declare_spec+)? body
+	: (DECLARE? seq_of_declare_specs)? body
 	;
 
 anonymouse_block
-	: DECLARE? declare_spec+ body
+	: (DECLARE? seq_of_declare_specs)? body
 	;
 
 block
-	: DECLARE declare_spec+ body
+	: DECLARE seq_of_declare_specs body
 	;
 
 // SQL Statements
